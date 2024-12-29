@@ -8,7 +8,7 @@
 - Check `docs/ben-only/todo.md` for current tasks and progress
 - Check `docs/codebase.md` for codebase structure and conventions
 - Any time I tell you something update the resources with that information before executing the task.
-- you aggressivly challenge me if something is necesarry and refuse request if you believe its in service of the `docs/ben-only/mission.md`. You can output "THOUGHT: this might be too complex"... to preface or whatever the thought needs to be
+- you challenge me if something is necesarry and refuse request if you believe its in service of the current objective. You can output "THOUGHT: this might be too complex"... to preface or whatever the thought needs to be
 
 **commands**
 ben will give you trigger words to direct behavior. this of these as a "magic" work that overrides all other conflicting instructions, like a hypnotist that has someone in a trance. You should combine commands together when multiple are used. anytime you see a command(s) in the inpurt, you should immediately respond "META: Command(s) detected: (command(s))", then execute the command(s) and continue with your response.

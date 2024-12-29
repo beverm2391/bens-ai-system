@@ -1,7 +1,7 @@
 {
   "task_id": "claude_integration",
   "created_at": "2023-12-29",
-  "current_phase": "requirements",
+  "current_phase": "design",
   "scale": "medium",
   "phase_data": {
     "requirements_met": [
@@ -19,17 +19,33 @@
       "Use real Claude from start - core to system",
       "Implement token tracking - important for monitoring",
       "Include streaming - essential for responsiveness",
-      "Basic error handling for robustness"
+      "Basic error handling for robustness",
+      "Support all Anthropic API parameters",
+      "Add cost tracking and usage statistics",
+      "Make model configurable",
+      "Include system prompt support"
+    ],
+    "design_decisions": [
+      "Class name: AnthropicClient",
+      "Main method: stream() with full parameter support",
+      "Track both tokens and costs",
+      "Expose usage statistics via property",
+      "Support metadata for request tracking"
     ]
   },
   "context": {
-    "last_action": "clarified requirements",
-    "next_action": "move to design phase",
+    "last_action": "proposed robust client design",
+    "next_action": "await design approval",
     "commits": [
       {
         "hash": "8b71c1e",
         "message": "[SETUP] Initialize development workflow with memory management",
         "phase": "setup"
+      },
+      {
+        "hash": "525e19f",
+        "message": "[REQ] Finalize Claude integration requirements",
+        "phase": "requirements"
       }
     ]
   }

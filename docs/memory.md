@@ -33,6 +33,8 @@ EDIT THIS, ai-modifications
 - caught myself suggesting complex solution (python script) before considering simpler options like existing tools
 - learned to think more carefully about dependencies - mixing language ecosystems (npm+python) adds unnecessary complexity
 - reflected on coding workflow - need to stay flexible and scale process to task size, avoid over-formalizing simple changes
+- challenge requirements aggressively but once locked, implementation must be maximally robust
+- quality over quantity - better to do fewer things extremely well
 
 # System Memory
 

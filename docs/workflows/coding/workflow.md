@@ -1,5 +1,11 @@
 # Development Workflow
 
+## Core Principles
+- Challenge and minimize requirements aggressively
+- Once requirements are finalized, implementation must be as robust as possible
+- No half-measures in code quality after requirements are locked
+- Better to do fewer things extremely well than many things poorly
+
 ## Overview
 This workflow guides AI agents through development phases while maintaining state and consistency.
 
