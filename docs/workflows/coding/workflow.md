@@ -14,10 +14,18 @@ This workflow guides AI agents through development phases while maintaining stat
   },
   "context": {
     "last_action": "",
-    "next_action": ""
+    "next_action": "",
+    "commits": []
   }
 }
 ```
+
+## Version Control
+- Commit before starting any workflow
+- Commit before potentially breaking changes
+- Track commits in memory file
+- Use clear, descriptive commit messages
+- Prefix commits with phase: `[PHASE] message`
 
 ## Phases
 

@@ -10,6 +10,7 @@
   },
   "context": {
     "last_action": "initialized workflow",
-    "next_action": "review Claude integration requirements"
+    "next_action": "review Claude integration requirements",
+    "commits": []
   }
 } 
