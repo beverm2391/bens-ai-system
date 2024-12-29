@@ -5,6 +5,32 @@
 - Once requirements are finalized, implementation must be as robust as possible
 - No half-measures in code quality after requirements are locked
 - Better to do fewer things extremely well than many things poorly
+- Test everything that can be tested automatically
+- Only require human testing for what can't be automated
+
+## Commands
+- `-m` / `-mem`: Record message in memory and update relevant files
+  - Updates memory.json for current workflow
+  - Updates any relevant documentation
+  - Preserves context between interactions
+
+## Technical Standards
+- Debug levels controlled by env var DEBUG_LEVEL (0=off, 1=on)
+- Consistent debug output across codebase
+- Tests organized in root /tests directory:
+  - /tests/unit for unit tests
+  - /tests/integration for integration tests
+- Automated testing before human review
+- Human review only after tests pass or for untestable features
+
+## Testing Process
+1. Implement automated tests where possible
+2. Run tests and verify results
+3. Request human review only when:
+   - Tests are passing and need final verification
+   - Feature cannot be automatically tested
+   - Uncertain about test results
+4. No commits until tests pass and necessary human review complete
 
 ## Overview
 This workflow guides AI agents through development phases while maintaining state and consistency.

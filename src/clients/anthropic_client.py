@@ -5,6 +5,16 @@ from typing import AsyncIterator, Dict, List, Optional, Any
 import anthropic
 from dataclasses import dataclass, field
 from datetime import datetime
+import os
+import logging
+
+# Configure logging based on DEBUG_LEVEL
+DEBUG_LEVEL = int(os.getenv("DEBUG_LEVEL", "0"))
+logging.basicConfig(
+    level=logging.DEBUG if DEBUG_LEVEL > 0 else logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger("anthropic_client")
 
 
 @dataclass
@@ -35,6 +45,7 @@ class AnthropicClient:
     - Token and cost tracking
     - Usage statistics
     - Error handling
+    - Debug output controlled by DEBUG_LEVEL env var
     """
     
     # Claude API pricing per 1k tokens (as of Dec 2023)
@@ -67,6 +78,7 @@ class AnthropicClient:
         self.model = model
         self.default_max_tokens = default_max_tokens
         self.stats = UsageStats()
+        logger.debug(f"Initialized AnthropicClient with model={model}, default_max_tokens={default_max_tokens}")
 
     async def stream(
         self,
@@ -110,6 +122,12 @@ class AnthropicClient:
         
         max_tokens = max_tokens or self.default_max_tokens
         
+        logger.debug(
+            f"Starting stream with: prompt_length={len(prompt)}, "
+            f"max_tokens={max_tokens}, temperature={temperature}, "
+            f"top_p={top_p}, top_k={top_k}, system={'set' if system else 'none'}"
+        )
+        
         try:
             # Prepare the message
             message = anthropic.messages.Message(
@@ -133,21 +151,30 @@ class AnthropicClient:
                 async for chunk in stream:
                     if chunk.type == "content_block_delta":
                         completion_tokens += len(chunk.text.split())  # Approximate
+                        if DEBUG_LEVEL > 0:
+                            logger.debug(f"Received chunk: {len(chunk.text)} chars")
                         yield chunk.text
                     elif chunk.type == "message_start":
                         prompt_tokens = chunk.message.usage.input_tokens
+                        logger.debug(f"Stream started, prompt_tokens={prompt_tokens}")
                 
                 # Update usage statistics
                 cost = self._calculate_cost(prompt_tokens, completion_tokens)
                 self.stats.add_request(prompt_tokens, completion_tokens, cost)
+                logger.debug(
+                    f"Stream complete: prompt_tokens={prompt_tokens}, "
+                    f"completion_tokens={completion_tokens}, cost=${cost:.6f}"
+                )
                 
         except anthropic.APIError as e:
+            logger.error(f"Anthropic API error: {str(e)}")
             # Enhance error message with context
             raise anthropic.APIError(
                 f"Anthropic API error ({e.status_code}): {str(e)}. "
                 f"Model: {self.model}, Prompt length: {len(prompt)}"
             ) from e
         except Exception as e:
+            logger.error(f"Unexpected error: {str(e)}")
             # Catch-all for unexpected errors
             raise RuntimeError(f"Unexpected error in AnthropicClient: {str(e)}") from e
 
@@ -156,12 +183,17 @@ class AnthropicClient:
         pricing = self.PRICING[self.model]
         prompt_cost = (prompt_tokens / 1000) * pricing["prompt"]
         completion_cost = (completion_tokens / 1000) * pricing["completion"]
-        return prompt_cost + completion_cost
+        total_cost = prompt_cost + completion_cost
+        logger.debug(
+            f"Cost calculation: prompt=${prompt_cost:.6f}, "
+            f"completion=${completion_cost:.6f}, total=${total_cost:.6f}"
+        )
+        return total_cost
 
     @property
     def usage_stats(self) -> Dict[str, Any]:
         """Get current usage statistics"""
-        return {
+        stats = {
             "model": self.model,
             "prompt_tokens": self.stats.prompt_tokens,
             "completion_tokens": self.stats.completion_tokens,
@@ -169,4 +201,6 @@ class AnthropicClient:
             "total_cost": round(self.stats.total_cost, 6),
             "requests": self.stats.requests,
             "last_request": self.stats.last_request.isoformat() if self.stats.last_request else None
-        } 
+        }
+        logger.debug(f"Current usage stats: {stats}")
+        return stats 

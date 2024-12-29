@@ -8,7 +8,9 @@
       "Need real Claude integration, no mocks",
       "Must track token usage",
       "Must support streaming responses",
-      "Keep client implementation simple but robust"
+      "Keep client implementation simple but robust",
+      "Support debug output via DEBUG_LEVEL",
+      "Tests must be in root /tests directory with unit/integration split"
     ],
     "challenges_raised": [
       "Do we need full Claude integration or start with mock?",
@@ -23,14 +25,19 @@
       "Support all Anthropic API parameters",
       "Add cost tracking and usage statistics",
       "Make model configurable",
-      "Include system prompt support"
+      "Include system prompt support",
+      "Add comprehensive debug logging",
+      "Require human testing before commits",
+      "Move tests to dedicated /tests directory structure"
     ],
     "design_decisions": [
       "Class name: AnthropicClient",
       "Main method: stream() with full parameter support",
       "Track both tokens and costs",
       "Expose usage statistics via property",
-      "Support metadata for request tracking"
+      "Support metadata for request tracking",
+      "Debug level controlled by DEBUG_LEVEL env var",
+      "Tests split into unit and integration directories"
     ],
     "implementation_details": [
       "Added UsageStats dataclass for tracking",
@@ -38,12 +45,16 @@
       "Added pricing data for all Claude models",
       "Built robust error handling with context",
       "Created detailed usage statistics",
-      "Implemented accurate cost calculation"
+      "Implemented accurate cost calculation",
+      "Added comprehensive debug logging",
+      "Debug controlled by DEBUG_LEVEL (0=off, 1=on)",
+      "Moved tests to /tests with unit/integration split",
+      "All unit tests passing in new structure"
     ]
   },
   "context": {
-    "last_action": "implemented AnthropicClient",
-    "next_action": "write tests",
+    "last_action": "completed test restructure and verified tests passing",
+    "next_action": "commit changes after review",
     "commits": [
       {
         "hash": "8b71c1e",
