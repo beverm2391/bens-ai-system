@@ -38,3 +38,11 @@ EDIT THIS, ai-modifications
 - CRITICAL ERROR: I committed code before getting human review of the demo - this violates the workflow and must never happen again
 - switching from version-based to feature-based docs organization for better maintainability and clarity
 - anthropic implementation complete, using as template for openai implementation
+- for openai implementation, will reuse same patterns:
+  - async streaming with proper event handling
+  - token/cost tracking
+  - debug levels via env var
+  - thorough error handling
+  - test first, then demo, then get review before commit
+- CRITICAL LEARNING: Always request official API documentation before implementing any external API integration to avoid hallucinations and ensure accuracy
+- IMPORTANT WORKFLOW RULE: Only challenge and question during requirements/planning phase. Once in implementation phase, focus purely on robust execution - questioning product decisions at this point is disruptive and unprofessional
