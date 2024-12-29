@@ -32,20 +32,21 @@
       "Fixed streaming for v0.42.0",
       "All tests passing",
       "Demo script working",
-      "Updated workflow to require human review"
+      "Updated workflow to require human review",
+      "Demo approved by user"
     ]
   },
   "context": {
-    "last_action": "Updated workflow to include test-demo-review-commit cycle",
+    "last_action": "Committed implementation after demo approval",
     "next_action": "Implementation complete",
     "status": "completed",
     "commits": [
       {
-        "hash": "825010f",
-        "message": "[IMPL] Add robust AnthropicClient with streaming support",
-        "files_changed": 11,
-        "insertions": 186,
-        "deletions": 111
+        "hash": "c6801bf",
+        "message": "[IMPL] Add robust AnthropicClient with streaming support - demo approved",
+        "files_changed": 6,
+        "insertions": 40,
+        "deletions": 23
       }
     ]
   }

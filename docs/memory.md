@@ -36,3 +36,5 @@ EDIT THIS, ai-modifications
 - challenge requirements aggressively but once locked, implementation must be maximally robust
 - quality over quantity - better to do fewer things extremely well
 - CRITICAL ERROR: I committed code before getting human review of the demo - this violates the workflow and must never happen again
+- switching from version-based to feature-based docs organization for better maintainability and clarity
+- anthropic implementation complete, using as template for openai implementation
