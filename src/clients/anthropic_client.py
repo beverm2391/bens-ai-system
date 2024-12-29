@@ -1,12 +1,13 @@
 """
 Robust Anthropic Claude client with streaming, token tracking, and full parameter support.
 """
-from typing import AsyncIterator, Dict, List, Optional, Any
+from typing import AsyncIterator, Dict, List, Optional, Any, Union
 import anthropic
 from dataclasses import dataclass, field
 from datetime import datetime
 import os
 import logging
+import json
 
 # Configure logging based on DEBUG_LEVEL
 DEBUG_LEVEL = int(os.getenv("DEBUG_LEVEL", "0"))
@@ -74,7 +75,7 @@ class AnthropicClient:
         if model not in self.PRICING:
             raise ValueError(f"Unsupported model: {model}. Must be one of {list(self.PRICING.keys())}")
             
-        self.client = anthropic.Client(api_key=api_key)
+        self.client = anthropic.Anthropic(api_key=api_key)
         self.model = model
         self.default_max_tokens = default_max_tokens
         self.stats = UsageStats()
@@ -89,7 +90,7 @@ class AnthropicClient:
         top_p: float = 1.0,
         top_k: Optional[int] = None,
         stop_sequences: Optional[List[str]] = None,
-        system: Optional[str] = None,
+        system: Optional[Union[str, List[str]]] = None,
         metadata: Optional[Dict[str, str]] = None,
     ) -> AsyncIterator[str]:
         """
@@ -102,7 +103,7 @@ class AnthropicClient:
             top_p: Nucleus sampling parameter (default: 1.0)
             top_k: Top-k sampling parameter (default: None)
             stop_sequences: Sequences that will stop generation (default: None)
-            system: System prompt (default: None)
+            system: System prompt(s) (default: None)
             metadata: Request metadata (default: None)
             
         Yields:
@@ -122,6 +123,28 @@ class AnthropicClient:
         
         max_tokens = max_tokens or self.default_max_tokens
         
+        # Build request parameters
+        params = {
+            "max_tokens": max_tokens,
+            "messages": [{"role": "user", "content": prompt}],
+            "model": self.model,
+            "temperature": temperature,
+            "top_p": top_p,
+            "stop_sequences": stop_sequences,
+            "metadata": metadata,
+            "stream": True
+        }
+        
+        # Only include optional parameters if set
+        if top_k is not None:
+            params["top_k"] = top_k
+            
+        if system is not None:
+            if isinstance(system, str):
+                params["system"] = system
+            else:
+                params["system"] = " ".join(system)
+        
         logger.debug(
             f"Starting stream with: prompt_length={len(prompt)}, "
             f"max_tokens={max_tokens}, temperature={temperature}, "
@@ -129,53 +152,70 @@ class AnthropicClient:
         )
         
         try:
-            # Prepare the message
-            message = anthropic.messages.Message(
-                role="user",
-                content=prompt,
-                model=self.model,
-                max_tokens=max_tokens,
-                temperature=temperature,
-                top_p=top_p,
-                top_k=top_k,
-                stop_sequences=stop_sequences,
-                system=system,
-                metadata=metadata,
-            )
-            
             # Stream the response
-            async with self.client.messages.stream(message) as stream:
-                prompt_tokens = 0  # We'll get this from the response
-                completion_tokens = 0
+            stream = self.client.messages.create(**params)
+            
+            prompt_tokens = 0
+            completion_tokens = 0
+            current_block_text = ""
+            
+            for chunk in stream:
+                if DEBUG_LEVEL > 0:
+                    logger.debug(f"Received chunk: {chunk}")
                 
-                async for chunk in stream:
-                    if chunk.type == "content_block_delta":
-                        completion_tokens += len(chunk.text.split())  # Approximate
-                        if DEBUG_LEVEL > 0:
-                            logger.debug(f"Received chunk: {len(chunk.text)} chars")
-                        yield chunk.text
-                    elif chunk.type == "message_start":
-                        prompt_tokens = chunk.message.usage.input_tokens
-                        logger.debug(f"Stream started, prompt_tokens={prompt_tokens}")
+                if hasattr(chunk, 'type'):
+                    if chunk.type == "message_start":
+                        if hasattr(chunk.message, "usage"):
+                            prompt_tokens = chunk.message.usage.input_tokens
+                            logger.debug(f"Stream started, prompt_tokens={prompt_tokens}")
+                    
+                    elif chunk.type == "content_block_delta":
+                        if hasattr(chunk.delta, "text"):
+                            text = chunk.delta.text
+                            current_block_text += text
+                            completion_tokens += len(text.split())  # Approximate
+                            if DEBUG_LEVEL > 0:
+                                logger.debug(f"Received text: {len(text)} chars")
+                            yield text
+                    
+                    elif chunk.type == "content_block_stop":
+                        if current_block_text:
+                            logger.debug(f"Content block complete: {len(current_block_text)} chars")
+                            current_block_text = ""
+                    
+                    elif chunk.type == "message_delta":
+                        if hasattr(chunk, "usage"):
+                            completion_tokens = chunk.usage.output_tokens
+                            logger.debug(f"Updated completion_tokens={completion_tokens}")
+                    
+                    elif chunk.type == "error":
+                        error_msg = chunk.error.message if hasattr(chunk.error, "message") else str(chunk.error)
+                        logger.error(f"Stream error: {error_msg}")
+                        raise RuntimeError(f"Stream error: {error_msg}")
+                    
+                    # Ignore ping events and handle unknown events gracefully
+                    elif chunk.type != "ping":
+                        logger.debug(f"Unknown event type: {chunk.type}")
+            
+            # Update usage statistics
+            cost = self._calculate_cost(prompt_tokens, completion_tokens)
+            self.stats.add_request(prompt_tokens, completion_tokens, cost)
+            logger.debug(
+                f"Stream complete: prompt_tokens={prompt_tokens}, "
+                f"completion_tokens={completion_tokens}, cost=${cost:.6f}"
+            )
                 
-                # Update usage statistics
-                cost = self._calculate_cost(prompt_tokens, completion_tokens)
-                self.stats.add_request(prompt_tokens, completion_tokens, cost)
-                logger.debug(
-                    f"Stream complete: prompt_tokens={prompt_tokens}, "
-                    f"completion_tokens={completion_tokens}, cost=${cost:.6f}"
-                )
-                
+        except anthropic.BadRequestError as e:
+            logger.error(f"Bad request error: {str(e)}")
+            raise ValueError(f"Invalid request: {str(e)}") from e
+        except anthropic.RateLimitError as e:
+            logger.error(f"Rate limit error: {str(e)}")
+            raise RuntimeError(f"Rate limit exceeded: {str(e)}") from e
         except anthropic.APIError as e:
-            logger.error(f"Anthropic API error: {str(e)}")
-            # Enhance error message with context
-            raise anthropic.APIError(
-                f"Anthropic API error ({e.status_code}): {str(e)}. "
-                f"Model: {self.model}, Prompt length: {len(prompt)}"
-            ) from e
+            logger.error(f"API error: {str(e)}")
+            raise RuntimeError(f"API error: {str(e)}") from e
         except Exception as e:
             logger.error(f"Unexpected error: {str(e)}")
-            # Catch-all for unexpected errors
             raise RuntimeError(f"Unexpected error in AnthropicClient: {str(e)}") from e
 
     def _calculate_cost(self, prompt_tokens: int, completion_tokens: int) -> float:

@@ -26,11 +26,18 @@
 ## Testing Process
 1. Implement automated tests where possible
 2. Run tests and verify results
-3. Request human review only when:
-   - Tests are passing and need final verification
-   - Feature cannot be automatically tested
-   - Uncertain about test results
-4. No commits until tests pass and necessary human review complete
+3. Generate demo script for visual verification
+4. Run demo and get human review
+5. Only commit after successful demo and review
+6. Update memory with demo results and commit
+
+## Demo Requirements
+- Create after all tests pass
+- Show key functionality in action
+- Keep demos simple and focused
+- Include expected output/behavior
+- Store in examples/ directory
+- Must be run and reviewed before commit
 
 ## Overview
 This workflow guides AI agents through development phases while maintaining state and consistency.
@@ -53,11 +60,11 @@ This workflow guides AI agents through development phases while maintaining stat
 ```
 
 ## Version Control
-- Commit before starting any workflow
-- Commit before potentially breaking changes
+- Never commit until after demo and review
 - Track commits in memory file
 - Use clear, descriptive commit messages
 - Prefix commits with phase: `[PHASE] message`
+- Include demo results in commit message
 
 ## Phases
 

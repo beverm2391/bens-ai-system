@@ -1,3 +1,3 @@
 """
-Client implementations for external services
+Client implementations for external services.
 """ 
