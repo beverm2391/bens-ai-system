@@ -33,3 +33,19 @@ EDIT THIS, ai-modifications
 - caught myself suggesting complex solution (python script) before considering simpler options like existing tools
 - learned to think more carefully about dependencies - mixing language ecosystems (npm+python) adds unnecessary complexity
 - reflected on coding workflow - need to stay flexible and scale process to task size, avoid over-formalizing simple changes
+
+# System Memory
+
+## Core Behaviors
+- Challenge complexity aggressively
+- Think before doing
+- Less code is better
+
+## Technical Practices
+- Install packages directly in environment, no requirements.txt
+- Keep documentation up to date
+- Test minimally but effectively
+
+## Current State
+- Building MVP with Claude integration
+- Focus on core agent functionality
