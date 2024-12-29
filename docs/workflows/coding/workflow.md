@@ -145,3 +145,25 @@ This workflow guides AI agents through development phases while maintaining stat
 - Update before phase transitions
 - Record key decisions and challenges
 - Maintain context between phases 
+
+## Implementation Phase
+
+1. Write code with tests
+2. Run tests until passing
+3. Create and run demo script
+4. Pause for human review
+   - Present test results and demo output
+   - Request approval to proceed
+   - If disapproved:
+     - Note feedback
+     - Make requested changes
+     - Return to step 2
+   - If approved:
+     - Proceed to commit
+5. Commit changes with descriptive message
+6. Update memory file with:
+   - Implementation details
+   - Test results
+   - Demo verification
+   - Review feedback
+   - Commit hash and stats 

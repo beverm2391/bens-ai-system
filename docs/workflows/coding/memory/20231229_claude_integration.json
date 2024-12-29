@@ -22,7 +22,8 @@
       "Use synchronous streaming for v0.42.0",
       "Handle all event types properly",
       "Track content blocks and usage",
-      "Simplify system prompt handling"
+      "Simplify system prompt handling",
+      "Added test-demo-review-commit workflow"
     ],
     "implementation_details": [
       "Implemented streaming with event handling",
@@ -30,13 +31,22 @@
       "Added debug logging",
       "Fixed streaming for v0.42.0",
       "All tests passing",
-      "Demo script working"
+      "Demo script working",
+      "Updated workflow to require human review"
     ]
   },
   "context": {
-    "last_action": "Created and verified demo script",
-    "next_action": "Ready for commit",
-    "status": "demo_verified",
-    "commits": []
+    "last_action": "Updated workflow to include test-demo-review-commit cycle",
+    "next_action": "Implementation complete",
+    "status": "completed",
+    "commits": [
+      {
+        "hash": "825010f",
+        "message": "[IMPL] Add robust AnthropicClient with streaming support",
+        "files_changed": 11,
+        "insertions": 186,
+        "deletions": 111
+      }
+    ]
   }
 } 
