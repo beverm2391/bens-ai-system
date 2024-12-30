@@ -56,3 +56,5 @@ EDIT THIS, ai-modifications
 - NEW CAPABILITY: Can consult O1 for critical thinking via ai-scripts/o1_consult.py
 - Should use O1 consultation during development for complex reasoning tasks
 - O1 provides deterministic (temperature=0) chain-of-thought reasoning
+- WORKFLOW UPDATE: Must run update_dir.py after tests pass to keep directory structure current
+- Directory updates are part of the test success workflow, not a separate task

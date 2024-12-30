@@ -9,7 +9,12 @@
 3. Challenge unnecessary complexity
 4. Create/update memory file for task
 5. Follow test-driven development
-6. Get human review before committing
+6. Run tests and verify passing
+7. Update directory structure:
+   ```bash
+   ./ai-scripts/update_dir.py
+   ```
+8. Get human review before committing
 
 ## Key Principles
 - Use O1 consultation for:
@@ -21,6 +26,7 @@
 - Keep solutions simple
 - Document decisions in memory
 - Test thoroughly before review
+- Keep directory structure current
 
 ## Process Scale
 - Small changes: Direct implementation
