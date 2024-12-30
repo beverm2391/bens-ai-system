@@ -1,5 +1,25 @@
 # Codebase Structure
 
+## Source Structure
+```
+src/
+├── clients/
+│   ├── anthropic_client.py   # Anthropic API client
+│   ├── openai_client.py      # OpenAI API client
+│   └── reasoning_client.py   # O1 reasoning capabilities
+├── utils/
+│   └── ...
+└── config/
+    └── ...
+```
+
+## AI Scripts
+```
+ai-scripts/
+├── README.md                 # Scripts documentation
+└── o1_consult.py            # O1 consultation tool
+```
+
 ```
 .
 ├── docs/

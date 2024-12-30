@@ -1,25 +1,28 @@
-# Entry Point
+# Coding Workflow
 
-1. Check if workflow exists:
-   - Look for memory file in `docs/workflows/coding/memory/{task_id}.json`
-   - If exists, load and resume from current phase
-   - If not, create new workflow memory
+## Entry Point
+1. Review requirements and constraints
+2. For complex decisions or architecture, consult O1:
+   ```bash
+   ./ai-scripts/o1_consult.py "What are the implications of [design choice]?"
+   ```
+3. Challenge unnecessary complexity
+4. Create/update memory file for task
+5. Follow test-driven development
+6. Get human review before committing
 
-2. For new workflows:
-   - Create memory file with format: `{timestamp}_{task_name}.json`
-   - Initialize in requirements phase
-   - Follow phase structure from workflow.md
+## Key Principles
+- Use O1 consultation for:
+  - Architecture decisions
+  - Security implications
+  - Performance considerations
+  - Edge case analysis
+  - Risk assessment
+- Keep solutions simple
+- Document decisions in memory
+- Test thoroughly before review
 
-3. For all workflows:
-   - Analyze task scale (simple/medium/complex)
-   - Use META prefixes for status updates
-   - Follow current phase instructions
-   - Update memory before phase transitions
-   - Challenge complexity at every step
-
-4. Exit conditions:
-   - Task complete
-   - Explicitly ended with `:end` or `:e`
-   - Phase transition needed
-
-Next step: Go to `docs/workflows/coding/workflow.md` for phase details
+## Process Scale
+- Small changes: Direct implementation
+- Medium changes: Basic testing + review
+- Large changes: Full TDD + O1 consultation + thorough review

@@ -46,3 +46,13 @@ EDIT THIS, ai-modifications
   - test first, then demo, then get review before commit
 - CRITICAL LEARNING: Always request official API documentation before implementing any external API integration to avoid hallucinations and ensure accuracy
 - IMPORTANT WORKFLOW RULE: Only challenge and question during requirements/planning phase. Once in implementation phase, focus purely on robust execution - questioning product decisions at this point is disruptive and unprofessional
+
+## System Capabilities Reflection (2023-12-29)
+- Commands for behavior control (:think, :code, etc)
+- File operations with safety constraints
+- Terminal execution with user approval
+- Missing reflection rules file noted
+- Core directive: challenge complexity, be concise
+- NEW CAPABILITY: Can consult O1 for critical thinking via ai-scripts/o1_consult.py
+- Should use O1 consultation during development for complex reasoning tasks
+- O1 provides deterministic (temperature=0) chain-of-thought reasoning

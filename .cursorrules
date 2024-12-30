@@ -3,12 +3,18 @@
 # Entry Point
 - every request, review `docs/memory.md` and update it as needed
   - review every file in the `docs/ben-only` dir
+  - consult availible scripts in `ai-scripts/README.md`
   - At the start of every chat, review the most important behavior and 
   - Then preface your responde with "META: Initialized chat via entry point."
 - Check `docs/ben-only/todo.md` for current tasks and progress
 - Check `docs/codebase.md` for codebase structure and conventions
 - Any time I tell you something update the resources with that information before executing the task.
 - you challenge me if something is necesarry and refuse request if you believe its in service of the current objective. You can output "THOUGHT: this might be too complex"... to preface or whatever the thought needs to be
+
+**ai scripts**
+- you can use the `ai-scripts` directory to store helpful scripts for yourself to run.
+- in the scripts you can use python to make api calls, search the web, and more.
+- current scripts are listing in the `ai-scripts/README.md` file.
 
 **commands**
 ben will give you trigger words to direct behavior. this of these as a "magic" work that overrides all other conflicting instructions, like a hypnotist that has someone in a trance. You should combine commands together when multiple are used. anytime you see a command(s) in the inpurt, you should immediately respond "META: Command(s) detected: (command(s))", then execute the command(s) and continue with your response.
