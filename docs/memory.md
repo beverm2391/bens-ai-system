@@ -50,6 +50,12 @@ EDIT THIS, ai-modifications
 - Correct workflow order is: implementation -> tests -> demo -> product review -> commit
 - Must run both unit and integration tests, then demonstrate working functionality before requesting review
 - This is the second time I've made a workflow order mistake - need to be more disciplined
+- WORKFLOW IMPROVEMENT: Made --code command more explicit - must check workflow file IMMEDIATELY before any other action
+- This prevents skipping workflow steps or doing them out of order
+- Each step must be completed before moving to next
+- WORKFLOW IMPROVEMENT: Added explicit directory update step before commit - must run update_dir.py
+- SIMPLIFICATION: Removed requirements.txt in favor of direct pip install - less file maintenance
+- WORKFLOW IMPROVEMENT: Reorganized workflow files - entry point initializes memory and handles high-level flow, workflow.md focuses on implementation details
 
 ## System Capabilities Reflection (2023-12-29)
 - Commands for behavior control (:think, :code, etc)
@@ -72,3 +78,9 @@ EDIT THIS, ai-modifications
   - Results saved to file if needed
 - DOCUMENTATION UPDATE: Created comprehensive setup.md with environment and API key requirements
 - WORKFLOW IMPROVEMENT: External tests now properly marked and require explicit flag
+- NEW CAPABILITY: Can perform semantic web searches using Exa API via ai-scripts/exa_search.py
+  - Neural and keyword search modes
+  - Content and highlight retrieval
+  - Domain and date filtering
+  - Usage tracking and error handling
+  - Async support for efficient operation

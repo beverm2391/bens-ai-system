@@ -2,168 +2,24 @@
 
 ## Core Principles
 - Challenge and minimize requirements aggressively
-- Once requirements are finalized, implementation must be as robust as possible
-- No half-measures in code quality after requirements are locked
-- Better to do fewer things extremely well than many things poorly
-- Test everything that can be tested automatically
-- Only require human testing for what can't be automated
-
-## Commands
-- `-m` / `-mem`: Record message in memory and update relevant files
-  - Updates memory.json for current workflow
-  - Updates any relevant documentation
-  - Preserves context between interactions
+- Once requirements are finalized, implementation must be robust
+- Better to do fewer things extremely well
+- Test everything that can be tested
 
 ## Technical Standards
-- Debug levels controlled by env var DEBUG_LEVEL (0=off, 1=on)
-- Consistent debug output across codebase
-- Tests organized in root /tests directory:
-  - /tests/unit for unit tests
-  - /tests/integration for integration tests
-- Automated testing before human review
-- Human review only after tests pass or for untestable features
+- Debug levels via DEBUG_LEVEL env var
+- Tests in /tests/{unit,integration}
+- Demo scripts in /examples
+- Must run demo and get review before commit
+- Must run update_dir.py before commit
 
-## Testing Process
-1. Implement automated tests where possible
-2. Run tests and verify results
-3. Generate demo script for visual verification
-4. Run demo and get human review
-5. Only commit after successful demo and review
-6. Update memory with demo results and commit
-
-## Demo Requirements
-- Create after all tests pass
-- Show key functionality in action
-- Keep demos simple and focused
-- Include expected output/behavior
-- Store in examples/ directory
-- Must be run and reviewed before commit
-
-## Overview
-This workflow guides AI agents through development phases while maintaining state and consistency.
-
-## Memory Structure
-```json
-{
-  "current_phase": "requirements",
-  "phase_data": {
-    "requirements_met": [],
-    "challenges_raised": [],
-    "decisions_made": []
-  },
-  "context": {
-    "last_action": "",
-    "next_action": "",
-    "commits": []
-  }
-}
-```
-
-## Version Control
-- Never commit until after demo and review
-- Track commits in memory file
-- Use clear, descriptive commit messages
-- Prefix commits with phase: `[PHASE] message`
-- Include demo results in commit message
-
-## Phases
-
-### 1. Requirements
-**Entry Point:**
-- New feature/change requested
-- Memory loaded and reviewed
-
-**Actions:**
-- Challenge complexity and necessity
-- Question assumptions
-- Propose simpler alternatives
-- Update documentation if requirements change
-
-**Exit Criteria:**
-- Requirements clearly defined
-- Complexity challenges addressed
-- Documentation updated
-- Move to Design phase
-
-### 2. Design
-**Entry Point:**
-- Requirements validated
-- Memory updated with decisions
-
-**Actions:**
-- Propose minimal solution
-- Review existing code/patterns
-- Challenge design complexity
-- Update technical docs if needed
-
-**Exit Criteria:**
-- Design approved
-- Documentation updated
-- Move to Implementation phase
-
-### 3. Implementation
-**Entry Point:**
-- Design approved
-- Memory updated with approach
-
-**Actions:**
-- Write minimal code
-- Install dependencies if needed
-- Update relevant docs
-- Maintain memory state
-
-**Exit Criteria:**
-- Code implemented
-- Tests passing
-- Docs updated
-- Move to Review phase
-
-### 4. Review
-**Entry Point:**
-- Implementation complete
-- Memory updated with changes
-
-**Actions:**
-- Self-review changes
-- Verify documentation
-- Check test coverage
-- Challenge any complexity
-
-**Exit Criteria:**
-- Changes verified
-- Documentation complete
-- Return to appropriate phase or end
-
-## Phase Transitions
-- Each phase must meet ALL exit criteria
-- Memory must be updated before transition
-- Documentation must be current
-- Complexity must be challenged
-
-## Memory Management
-- Load memory at start of each interaction
-- Update before phase transitions
-- Record key decisions and challenges
-- Maintain context between phases 
-
-## Implementation Phase
-
-1. Write code with tests
-2. Run tests until passing
-3. Create and run demo script
-4. Pause for human review
-   - Present test results and demo output
-   - Request approval to proceed
-   - If disapproved:
-     - Note feedback
-     - Make requested changes
-     - Return to step 2
-   - If approved:
-     - Proceed to commit
-5. Commit changes with descriptive message
-6. Update memory file with:
-   - Implementation details
-   - Test results
-   - Demo verification
-   - Review feedback
-   - Commit hash and stats 
+## Implementation Steps
+1. Write tests first
+2. Implement code
+3. Run tests until passing
+4. Create and run demo
+5. Get human review
+   - If disapproved: fix and return to step 3
+   - If approved: proceed
+6. Update directory structure
+7. Update memory and commit 

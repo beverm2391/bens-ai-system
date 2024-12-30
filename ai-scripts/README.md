@@ -65,6 +65,27 @@ Send macOS notifications from scripts or command line.
 ./notify.py "Your message" "Alert Title" "Alert Subtitle" --alert
 ```
 
+### exa_search.py
+Perform semantic web searches using the Exa API.
+
+Usage:
+```bash
+python exa_search.py <query> [num_results] [include_domains] [exclude_domains]
+```
+
+Arguments:
+- query: Search query string
+- num_results: (optional) Number of results to return (default: 10)
+- include_domains: (optional) Comma-separated list of domains to include
+- exclude_domains: (optional) Comma-separated list of domains to exclude
+
+Example:
+```bash
+python exa_search.py "latest AI developments" 5 "techcrunch.com,wired.com"
+```
+
+Returns JSON with search results including content and highlights.
+
 ## Environment Setup
 
 All scripts require:

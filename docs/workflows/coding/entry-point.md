@@ -1,34 +1,41 @@
-# Coding Workflow
+# Coding Workflow Entry Point
 
-## Entry Point
-1. Review requirements and constraints
-2. For complex decisions or architecture, consult O1:
-   ```bash
-   ./ai-scripts/o1_consult.py "What are the implications of [design choice]?"
+1. Initialize workflow memory
+   ```python
+   workflow_memory = {
+       "phase": "requirements",
+       "decisions": [],
+       "changes": []
+   }
    ```
-3. Challenge unnecessary complexity
-4. Create/update memory file for task
-5. Follow test-driven development
-6. Run tests and verify passing
-7. Update directory structure:
-   ```bash
-   ./ai-scripts/update_dir.py
-   ```
-8. Get human review before committing
 
-## Key Principles
-- Use O1 consultation for:
-  - Architecture decisions
-  - Security implications
-  - Performance considerations
-  - Edge case analysis
-  - Risk assessment
-- Keep solutions simple
-- Document decisions in memory
-- Test thoroughly before review
-- Keep directory structure current
+2. Review requirements and constraints
+   - Challenge complexity
+   - Question assumptions
+   - Use O1 for complex decisions:
+     ```bash
+     ./ai-scripts/o1_consult.py (custom prompt asking what you need)
+     ```
 
-## Process Scale
+3. Follow test-driven development
+   - Write tests first
+   - Implement code
+   - Run all tests
+
+4. Demo and review
+   - Create demo script
+   - Run demo
+   - Get human review
+
+5. Pre-commit
+   - Update directory structure:
+     ```bash
+     ./ai-scripts/update_dir.py
+     ```
+   - Update memory file
+   - Get final approval
+
+## Scale Process
 - Small changes: Direct implementation
 - Medium changes: Basic testing + review
-- Large changes: Full TDD + O1 consultation + thorough review
+- Large changes: Full TDD + O1 consultation

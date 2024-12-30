@@ -15,11 +15,12 @@ class TestSerpClientIntegration:
         yield client
     
     @pytest.mark.asyncio
+    @pytest.mark.external
     async def test_real_search_demo(self, client):
         """Real integration test demonstrating SERP client functionality."""
         try:
             # Search for something specific that should have stable results
-            results = await client.search("OpenAI GPT-4 technical documentation", num_results=3)
+            results = await client.search("OpenAI GPT-4 documentation", num_results=3)
             
             # Verify we got results
             assert len(results) > 0, "Should get at least one result"
@@ -47,6 +48,7 @@ class TestSerpClientIntegration:
             pytest.fail(f"Unexpected error: {str(e)}")
             
     @pytest.mark.asyncio
+    @pytest.mark.external
     async def test_rate_limit_demo(self, client):
         """Demonstrate rate limit handling with a small limit."""
         # Set a very low limit for demonstration
