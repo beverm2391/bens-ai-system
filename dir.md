@@ -6,9 +6,9 @@
 ├── README.md
 ├── ai-scripts
 │   ├── README.md
+│   ├── firecrawl_search.py
 │   ├── o1_consult.py
 │   └── update_dir.py
-├── command
 ├── dir.md
 ├── docs
 │   ├── agents
@@ -31,6 +31,8 @@
 │   │   │   └── mvp.md
 │   │   ├── codebase.md
 │   │   ├── conventions.md
+│   │   ├── firecrawl
+│   │   │   └── README.md
 │   │   └── openai
 │   │   │   └── README.md
 │   ├── technical
@@ -59,6 +61,7 @@
 │   ├── clients
 │   │   ├── __init__.py
 │   │   ├── anthropic_client.py
+│   │   ├── firecrawl_client.py
 │   │   ├── openai_client.py
 │   │   └── reasoning_client.py
 │   ├── main.py
@@ -68,9 +71,12 @@
 ├── tests
 │   ├── integration
 │   │   ├── test_anthropic_client.py
+│   │   ├── test_firecrawl_client.py
+│   │   ├── test_firecrawl_integration.py
 │   │   ├── test_openai_client.py
 │   │   └── test_reasoning_client.py
 │   └── unit
-│   │   └── test_anthropic_client.py
+│   │   ├── test_anthropic_client.py
+│   │   └── test_firecrawl_client.py
 ├── todo.md
 ```

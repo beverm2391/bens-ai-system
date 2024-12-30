@@ -31,3 +31,22 @@ Features:
 - Maintains existing comments
 - Formats using tree-style output
 - Preserves special files/directories 
+
+### firecrawl_search.py
+Script for scraping and crawling websites using Firecrawl API.
+
+Usage:
+```bash
+# Scrape single page
+python firecrawl_search.py https://example.com
+
+# Crawl entire site
+python firecrawl_search.py --crawl https://example.com
+```
+
+Features:
+- Single page scraping
+- Full site crawling
+- Automatic retry on failures
+- Progress feedback
+- JSON output 

@@ -46,6 +46,10 @@ EDIT THIS, ai-modifications
   - test first, then demo, then get review before commit
 - CRITICAL LEARNING: Always request official API documentation before implementing any external API integration to avoid hallucinations and ensure accuracy
 - IMPORTANT WORKFLOW RULE: Only challenge and question during requirements/planning phase. Once in implementation phase, focus purely on robust execution - questioning product decisions at this point is disruptive and unprofessional
+- CRITICAL WORKFLOW ERROR: Jumped to product review for Firecrawl integration without running tests or demo first
+- Correct workflow order is: implementation -> tests -> demo -> product review -> commit
+- Must run both unit and integration tests, then demonstrate working functionality before requesting review
+- This is the second time I've made a workflow order mistake - need to be more disciplined
 
 ## System Capabilities Reflection (2023-12-29)
 - Commands for behavior control (:think, :code, etc)
@@ -58,3 +62,7 @@ EDIT THIS, ai-modifications
 - O1 provides deterministic (temperature=0) chain-of-thought reasoning
 - WORKFLOW UPDATE: Must run update_dir.py after tests pass to keep directory structure current
 - Directory updates are part of the test success workflow, not a separate task
+- NEW CAPABILITY: Can scrape and crawl websites using Firecrawl via ai-scripts/firecrawl_search.py
+  - Single page scraping to markdown
+  - Full site crawling with status tracking
+  - Automatic retries and error handling
