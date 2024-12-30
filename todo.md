@@ -1,3 +1,5 @@
 # TODO
 
-- make an 'ask o1' script and update worklow to use it for reasoning
+- [ ] add search ai-script to comlement o1 and firecrawl
+- [ ] add automated browser tool
+- [ ] add computer use tool (docker conatiner)
