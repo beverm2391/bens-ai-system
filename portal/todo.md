@@ -1,0 +1,5 @@
+- [ ] get app running.
+- [ ] figure out how to start and stop
+- [ ] try having  cursor add a new file then manually refresh
+- [ ] try simple file watcher
+- [ ] figure out tests

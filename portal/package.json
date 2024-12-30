@@ -1,0 +1,24 @@
+{
+  "name": "portal",
+  "version": "1.0.0",
+  "description": "portal interface for ai agent",
+  "main": "dist/main.js",
+  "type": "module",
+  "scripts": {
+    "start": "tsc && electron .",
+    "build": "tsc",
+    "watch": "tsc -w",
+    "lint": "eslint -c .eslintrc --ext .ts ./src",
+    "dev": "tsc && electron ."
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^20.10.6",
+    "@typescript-eslint/eslint-plugin": "^6.17.0",
+    "@typescript-eslint/parser": "^6.17.0",
+    "electron": "^33.2.1",
+    "eslint": "^8.56.0",
+    "typescript": "^5.3.3"
+  }
+}
