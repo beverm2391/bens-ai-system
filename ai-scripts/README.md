@@ -51,6 +51,20 @@ Update directory structure documentation.
 ./update_dir.py
 ```
 
+### notify.py
+Send macOS notifications from scripts or command line.
+
+```bash
+# Basic banner notification
+./notify.py "Your message"
+
+# Custom title and subtitle
+./notify.py "Your message" "Custom Title" "Optional Subtitle"
+
+# Modal alert dialog
+./notify.py "Your message" "Alert Title" "Alert Subtitle" --alert
+```
+
 ## Environment Setup
 
 All scripts require:

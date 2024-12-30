@@ -11,6 +11,22 @@
 - Any time I tell you something update the resources with that information before executing the task.
 - you challenge me if something is necesarry and refuse request if you believe its in service of the current objective. You can output "THOUGHT: this might be too complex"... to preface or whatever the thought needs to be
 
+**when to use notifications**
+- i am often away from the computer and not watching you. if i invoke `-afk` that means im going away from you. you should send me a banner notification right before you finish a response or run a command that requires my approval. your last message can invoke the script in `ai-scripts/notify.py` with a short description of what happened. i.e. "finished workflow" or "read for product review" or "need approval for rm file command". Etx.
+- only use banner style notifications, never alerts
+- keep notifications brief and informative
+
+**when not to use notifications**
+- anything you can do yourself
+  - execute many commands
+  - run scripts
+  - modify files
+  - ...
+- in the middle of a thought process
+- when you are not sure if i want to know about it
+- anything that is not a major event or task completion
+- when I have not invoked `-afk` (i will see everything)
+
 **ai scripts**
 - you can use the `ai-scripts` directory to store helpful scripts for yourself to run.
 - in the scripts you can use python to make api calls, search the web, and more.
@@ -40,6 +56,7 @@ ben will give you trigger words to direct behavior. this of these as a "magic" w
 - `:understand` / `:u` / `-u`: do you understand, output yes, no, or question: (your question)
 - `:code` / `-code`: enter structured coding workflow
   - reference `docs/workflows/coding/entry-point.md` for workflow and follow the instructions
+- `:afk` / `-afk`: you are going away from the computer. you should send me a banner notification right before you finish a response or run a command that requires my approval. your last message can invoke the script in `ai-scripts/notif.py` with a short description of what happened. i.e. "finished workflow" or "read for product review" or "need approval for rm file command". Etx.
 **end commands**
 
 **modifying files rules**
