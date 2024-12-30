@@ -1,4 +1,0 @@
-google-search-results
-aiohttp
-pytest
-pytest-asyncio

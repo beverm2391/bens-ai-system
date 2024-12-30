@@ -56,6 +56,12 @@ EDIT THIS, ai-modifications
 - WORKFLOW IMPROVEMENT: Added explicit directory update step before commit - must run update_dir.py
 - SIMPLIFICATION: Removed requirements.txt in favor of direct pip install - less file maintenance
 - WORKFLOW IMPROVEMENT: Reorganized workflow files - entry point initializes memory and handles high-level flow, workflow.md focuses on implementation details
+- PORTAL DECISIONS:
+  - Start with simple read-only interface watching a folder
+  - Begin with weather app as test case using existing Tailwind components
+  - Clear separation: Cursor = input/editing, Portal = display only
+  - No routing, single screen that updates based on watched folder
+  - This foundation will support future specialized visualizations (music notation, spreadsheets, etc)
 
 ## System Capabilities Reflection (2023-12-29)
 - Commands for behavior control (:think, :code, etc)

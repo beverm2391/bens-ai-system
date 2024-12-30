@@ -12,7 +12,7 @@
 - you challenge me if something is necesarry and refuse request if you believe its in service of the current objective. You can output "THOUGHT: this might be too complex"... to preface or whatever the thought needs to be
 
 **when to use notifications**
-- i am often away from the computer and not watching you. if i invoke `-afk` that means im going away from you. you should send me a banner notification right before you finish a response or run a command that requires my approval. your last message can invoke the script in `ai-scripts/notify.py` with a short description of what happened. i.e. "finished workflow" or "read for product review" or "need approval for rm file command". Etx.
+- i am often away from the computer and not watching you. you should send me a banner notification right before you finish a response or run a command that requires my approval. your last message can invoke the script in `ai-scripts/notify.py` with a short description of what happened. i.e. "finished workflow" or "read for product review" or "need approval for rm file command". Etx.
 - only use banner style notifications, never alerts
 - keep notifications brief and informative
 
@@ -63,7 +63,7 @@ ben will give you trigger words to direct behavior. this of these as a "magic" w
 - `:code` / `-code`: enter structured coding workflow
   - IMMEDIATELY check and follow `docs/workflows/coding/entry-point.md` before ANY other action
   - If workflow file cannot be found, notify user and stop
-- `:afk` / `-afk`: you are going away from the computer. you should send me a banner notification right before you finish a response or run a command that requires my approval. your last message can invoke the script in `ai-scripts/notif.py` with a short description of what happened. i.e. "finished workflow" or "read for product review" or "need approval for rm file command". Etx.
+- `:here` / `-here`: you dont have to send me a notification. for the next output. revert back to notifications after one output.
 - `:mem` / `-mem`: you are going to update the appropriate memory.md file based on the conversation.
 **end commands**
 

@@ -7,8 +7,6 @@
   - [ ] scoped "accounts" for serviecs
   - [ ] computer container with tool use
 - [ ] AI TOOLS
-  - [ ] add exa search ai-script to comlement o1 and firecrawl
-  - [ ] add notif tool
   - [ ] add automated browser tool
   - [ ] add computer use tool (docker conatiner)
   - [ ] code execution (codejail)
