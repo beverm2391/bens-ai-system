@@ -1,24 +1,21 @@
 {
   "name": "portal",
   "version": "1.0.0",
-  "description": "portal interface for ai agent",
+  "description": "Portal for Ben's AI System",
   "main": "dist/main.js",
   "type": "module",
   "scripts": {
     "start": "tsc && electron .",
     "build": "tsc",
     "watch": "tsc -w",
-    "lint": "eslint -c .eslintrc --ext .ts ./src",
-    "dev": "tsc && electron ."
+    "dev": "concurrently \"npm run watch\" \"electron .\""
   },
-  "author": "",
+  "author": "Ben Everman",
   "license": "ISC",
   "devDependencies": {
-    "@types/node": "^20.10.6",
-    "@typescript-eslint/eslint-plugin": "^6.17.0",
-    "@typescript-eslint/parser": "^6.17.0",
-    "electron": "^33.2.1",
-    "eslint": "^8.56.0",
-    "typescript": "^5.3.3"
+    "electron": "^28.0.0",
+    "typescript": "^5.3.3",
+    "@types/node": "^20.10.5",
+    "concurrently": "^8.2.2"
   }
 }
