@@ -16,4 +16,18 @@ Features:
 - Direct O1 consultation
 - Focused on reasoning/critical thinking
 - Prints response for AI review
-- Handles streaming output 
+- Handles streaming output
+
+### update_dir.py
+Updates dir.md with current project structure. Automatically generates a formatted directory tree.
+
+Usage:
+```bash
+python update_dir.py
+```
+
+Features:
+- Scans workspace for current structure
+- Maintains existing comments
+- Formats using tree-style output
+- Preserves special files/directories 
