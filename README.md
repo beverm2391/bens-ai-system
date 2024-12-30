@@ -2,11 +2,13 @@
 
 first thing is the AI gets a predefined init file or entrypoint (cursorrules)
 that file does a few things
+
+- outlines initialization
+  - reads all files in the `agent/` dir
+- outlines response workflow
 - defines commands (meta)
 - provides initial instructions
 - describes core behavior
-- sets up AI scripts
-- points to other config files for review
 
 workflows
 - the AI gets a predefined workflow file (workflow.md) with command to invoke

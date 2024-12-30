@@ -5,8 +5,8 @@ import tempfile
 from pathlib import Path
 
 # Add new constants at the top
-DEFAULT_INPUT_DIR = Path('projects/ai-system/diagrams')
-DEFAULT_OUTPUT_DIR = Path('outputs/diagrams')
+DEFAULT_INPUT_DIR = Path('docs/ai-system/diagrams')
+DEFAULT_OUTPUT_DIR = Path('docs/ai-system/diagrams/images')
 
 def extract_mermaid(md_file):
     """Extract mermaid diagram content from markdown file."""

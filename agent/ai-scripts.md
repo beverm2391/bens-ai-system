@@ -4,6 +4,21 @@ Helper scripts for AI operations.
 
 ## Scripts
 
+### prompt.py
+Write and run prompts with any script. Prompts are stored in `ai-scripts/prompts/` for reuse.
+
+```bash
+# Write a prompt to file
+./prompt.py write my_prompt.txt
+# Then enter/paste your prompt and press Ctrl-D (Unix) or Ctrl-Z (Windows)
+
+# Run a prompt with any script
+./prompt.py run my_prompt.txt target_script.py [args...]
+
+# Example with o1_consult.py
+./prompt.py run analysis.txt o1_consult.py
+```
+
 ### serp_search.py
 Search the web using SERP API with optional content crawling.
 
@@ -36,11 +51,17 @@ Crawl and scrape websites using Firecrawl API.
 ```
 
 ### o1_consult.py
-Consult O1 for critical thinking and analysis.
+Consult O1 for critical thinking and analysis. Can read from stdin or command line. O1 can handle large contexts (up to 150k tokens) - always provide complete relevant information for best results.
 
 ```bash
-# Get O1's analysis
+# Direct query
 ./o1_consult.py "What are the implications of [design choice]?"
+
+# Read from stdin (preferred for large contexts)
+echo "Your prompt" | ./o1_consult.py
+
+# Use with prompt.py for longer prompts (best practice)
+./prompt.py run analysis.txt o1_consult.py
 ```
 
 ### update_dir.py

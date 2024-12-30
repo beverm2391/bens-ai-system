@@ -22,3 +22,14 @@ Commands must be:
 - Shell operations (`>&`, `|`, `;`)
 - Environment modifications
 - Network operations (`curl`, `wget`)
+
+
+## Package Management
+- Install packages directly in environment with pip
+- Do not maintain requirements.txt - we work in the environment directly
+- Only document critical version dependencies if absolutely necessary
+
+## Code Style
+- Keep it simple
+- Less code is better
+- Challenge complexity 

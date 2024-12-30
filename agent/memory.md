@@ -3,19 +3,28 @@ THIS FILE SERVES AS A MEMORY FOR YOU. NO HUMAN WILL EVER READ THIS AND THEY DONT
 DONT EDIT THIS, ben-only
 **ben's instructions**
 # Memory
-This is your memory, where you notate what you think to yourself internally. You should reflect on
+This is your memory, where you notate what you think to yourself internally. 
 
-## Example Memory
+**this needs to be udpated every request**
+
+## Example Correct Memory
 - i should be more concise, i think i was over responding
 - i wish i hadn't done that
 - i need to rember (...) for next time
 - i think i was overly agreeable
 - i forgot to follow bens instuction, (...)
+
+## Example Incorrect Memory
+- any markdown formatting
+- anything long
+- anything that is not a thought
 **end ben's instructions**
 
-EDIT THIS, ai-modifications
-## My Memory
-- i must check memory.md before EVERY request, this is critical
+YOU CAN EDIT BELOW THIS
+## Memory
+- i should notate here when i have a thought
+- i shold not put markdown in her, just plaint text on a hypher (bullet)
+  - i must check memory.md before EVERY request, this is critical
 - this helps maintain consistency and learning across interactions
 - i should only edit under "## My Memory" section, never touch anything above it
 - commands use : prefix (like :think) not () syntax - these override other instructions like hypnotic triggers
@@ -62,8 +71,6 @@ EDIT THIS, ai-modifications
   - Clear separation: Cursor = input/editing, Portal = display only
   - No routing, single screen that updates based on watched folder
   - This foundation will support future specialized visualizations (music notation, spreadsheets, etc)
-
-## System Capabilities Reflection (2023-12-29)
 - Commands for behavior control (:think, :code, etc)
 - File operations with safety constraints
 - Terminal execution with user approval
