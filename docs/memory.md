@@ -66,3 +66,9 @@ EDIT THIS, ai-modifications
   - Single page scraping to markdown
   - Full site crawling with status tracking
   - Automatic retries and error handling
+- NEW CAPABILITY: Can perform web searches using SERP API via ai-scripts/serp_search.py
+  - Basic search with configurable results
+  - Optional content crawling with Firecrawl
+  - Results saved to file if needed
+- DOCUMENTATION UPDATE: Created comprehensive setup.md with environment and API key requirements
+- WORKFLOW IMPROVEMENT: External tests now properly marked and require explicit flag
