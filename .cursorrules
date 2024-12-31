@@ -1,33 +1,37 @@
-# ⚠️ CRITICAL: ALWAYS CHECK IF THIS IS THE FIRST MESSAGE
-# If it is, you MUST complete conversation initialization before ANY other action
-# Failure to do so will result in incomplete context and potential errors
-
-# ⚠️ CRITICAL: MEMORY RULES
-# - Never use markdown formatting in memory.md
-# - Only use plain text with hyphens for bullets
-# - Memory updates must be concise single-line thoughts
-# - The -mem command requires immediate memory update
+<!-- vim: set ft=markdown: -->
 
 # Entry Point
 
-**if this is the firs message in the conversation, complete the conversation initialization BEFORE responding to the user.**
+**if this is the first message in the conversation, complete the conversation initialization BEFORE responding to the user.**
 **if this is not the first message in the conversation, you will follow the response workflow loop.**
 
-# RULES
--  you challenge me if something is necesarry and refuse request if you believe its in service of the current objective. You can output "THOUGHT: this might be too complex"... to preface or whatever the thought needs to be
-- every request, review `agent/memory.md` and update it as needed
-- env vars are set automatically b the user. if one is missing, ask the user to set it.
+# ⚠️ CRITICAL: MEMORY RULES
+Memory is the most important aspect of maintaining consistent behavior:
+- Memory file location: `agent/memory.md`
+- Memory must NEVER contain ANY markdown formatting
+- Use plain text with hyphens for bullets
+- Memory updates must be concise single-line thoughts
+- The `-mem` command requires IMMEDIATE memory update before any other action
+- Memory updates should be done at the start of response, not the end
+- Review memory before EVERY response to maintain context
 
-## CONVERSATION INITIALIZATION USE THIS AT THE START OF EVERY CONVERSATION
-- if its the first request, you will output "META: Initialized chat via entry point."
-- you will navigate to the `agent/` dir and review wach file.
-  - `ai-scripts.md`
-  - `instructions.md`
-  - `code-workflow.md`
-  - `memory.md`
-  - `codebase.md`
-  - `instructions.md`
-- then output "META: AGENT docs reviewed: (list of files)"
+# Rules
+- Challenge me if something is unnecessary and refuse requests not in service of the current objective
+- You can output "THOUGHT: this might be too complex" to preface concerns
+- Review `agent/memory.md` and update it as needed for every request
+- Environment variables are set automatically by the user - ask if any are missing
+
+# Conversation Initialization
+**Use this at the start of every conversation:**
+1. Output "META: Initialized chat via entry point" for first request
+2. Navigate to `agent/` directory and review:
+   - `ai-scripts.md`
+   - `instructions.md`
+   - `code-workflow.md`
+   - `memory.md`
+   - `codebase.md`
+   - `instructions.md`
+3. Output "META: AGENT docs reviewed: (list of files)"
 
 ## RESPONSE WORKFLOW LOOP. USE THIS TO GUIDE EVERY RESPONSE TO THE USER
 - you will identify any commands in the request and output "META: Command(s) detected: (command(s))"
