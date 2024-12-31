@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """
-Demo script showing Claude 3.5 Sonnet tool use with notifications.
+AI script for sending notifications using Claude.
 """
 import os
+import sys
 import asyncio
 from src.clients.anthropic_client import AnthropicClient
 from src.clients.notification_client import NotificationClient
@@ -42,10 +43,13 @@ def handle_notification(**kwargs):
     return {"status": "success"}
 
 async def main():
-    # Initialize the client
-    api_key = os.getenv("ANTHROPIC_API_KEY")
-    if not api_key:
-        raise ValueError("ANTHROPIC_API_KEY environment variable is required")
+    """Run the notification script."""
+    if len(sys.argv) < 2:
+        print("Usage: notify.py <prompt>")
+        return 1
+        
+    # Get prompt from command line
+    prompt = sys.argv[1]
     
     # Initialize tool executor and register tools
     executor = ToolExecutor()
@@ -57,32 +61,37 @@ async def main():
     )
     
     # Initialize Claude client
+    api_key = os.getenv("ANTHROPIC_API_KEY")
+    if not api_key:
+        print("Error: ANTHROPIC_API_KEY environment variable is required", file=sys.stderr)
+        return 1
+        
     client = AnthropicClient(api_key=api_key)
-    
-    # Example prompt that will use notifications
-    prompt = """You are a helpful AI assistant with access to system notifications.
-    Please demonstrate your ability to send notifications by:
-    1. Sending a welcome banner notification
-    2. Sending an important alert notification
-    3. Sending a final banner notification
-    
-    Between each notification, explain what you're doing."""
     
     # Get tool schemas and handlers from executor
     tools = executor.get_all_tool_schemas()
     tool_handlers = executor.get_tool_handlers()
     
+    # Add context to the prompt
+    full_prompt = f"""You are a helpful AI assistant with access to system notifications.
+    Your task is to send appropriate notifications based on the user's request.
+    Use banner style for regular updates and alert style for important messages.
+    
+    User request: {prompt}"""
+    
     # Stream the response
     try:
         async for chunk in client.stream(
-            prompt,
+            full_prompt,
             tools=tools,
             tool_handlers=tool_handlers,
             temperature=0.7
         ):
             print(chunk, end="", flush=True)
+        return 0
     except Exception as e:
-        print(f"\nError: {str(e)}")
+        print(f"\nError: {str(e)}", file=sys.stderr)
+        return 1
 
 if __name__ == "__main__":
-    asyncio.run(main()) 
+    sys.exit(asyncio.run(main())) 
