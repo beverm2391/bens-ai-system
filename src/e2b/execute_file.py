@@ -2,9 +2,9 @@
 
 import sys
 import argparse
-from pathlib import Path
-from e2b import Sandbox
 import os
+from pathlib import Path
+from e2b_code_interpreter import Sandbox
 
 def execute_file(file_path: str, runtime: str = "python3"):
     """Execute code from a file in an e2b sandbox environment."""
@@ -22,18 +22,20 @@ def execute_file(file_path: str, runtime: str = "python3"):
         
         with Sandbox(api_key=api_key) as sandbox:
             try:
-                result = sandbox.run(code)
+                result = sandbox.run_code(code)
+                stdout = "\n".join(result.logs.stdout) if result.logs.stdout else ""
+                stderr = "\n".join(result.logs.stderr) if result.logs.stderr else ""
+                if result.error:
+                    stderr = str(result.error)
                 if debug != "0":
-                    print(f"[DEBUG] Stdout: {result.stdout}")
-                    print(f"[DEBUG] Stderr: {result.stderr}")
-                return result.stdout, result.stderr
+                    print(f"[DEBUG] Stdout: {stdout}")
+                    print(f"[DEBUG] Stderr: {stderr}")
+                return stdout, stderr
             except Exception as e:
                 if debug != "0":
                     print(f"[DEBUG] Error: {str(e)}")
                 raise
     except FileNotFoundError:
-        if debug != "0":
-            print(f"[DEBUG] File not found: {file_path}")
         raise
 
 def main():

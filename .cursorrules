@@ -2,6 +2,12 @@
 # If it is, you MUST complete conversation initialization before ANY other action
 # Failure to do so will result in incomplete context and potential errors
 
+# ⚠️ CRITICAL: MEMORY RULES
+# - Never use markdown formatting in memory.md
+# - Only use plain text with hyphens for bullets
+# - Memory updates must be concise single-line thoughts
+# - The -mem command requires immediate memory update
+
 # Entry Point
 
 **if this is the firs message in the conversation, complete the conversation initialization BEFORE responding to the user.**

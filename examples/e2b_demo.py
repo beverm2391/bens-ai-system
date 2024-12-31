@@ -1,44 +1,53 @@
 #!/usr/bin/env python3
 
 import os
-from src.e2b import execute_code, execute_file
+from src.e2b.execute import execute_code
+from src.e2b.execute_file import execute_file
 
-# Enable debug output
-os.environ["DEBUG_LEVEL"] = "1"
-
-print("\n=== Direct Code Execution ===")
-code = """
+def run_demos():
+    print("\n=== Direct Code Execution Demo ===")
+    
+    # Simple print
+    print("\n1. Simple print statement:")
+    stdout, stderr = execute_code('print("Hello from E2B sandbox!")')
+    print(f"Stdout: {stdout}")
+    print(f"Stderr: {stderr}")
+    
+    # Math calculation
+    print("\n2. Math calculation:")
+    stdout, stderr = execute_code('result = 42 * 2; print(f"The answer is {result}")')
+    print(f"Stdout: {stdout}")
+    print(f"Stderr: {stderr}")
+    
+    # Error handling
+    print("\n3. Error handling:")
+    stdout, stderr = execute_code('print(undefined_variable)')
+    print(f"Stdout: {stdout}")
+    print(f"Stderr: {stderr}")
+    
+    print("\n=== File Execution Demo ===")
+    
+    # Create a test file
+    test_file = "examples/test_code.py"
+    with open(test_file, "w") as f:
+        f.write('''
 import math
 
 def calculate_circle_area(radius):
     return math.pi * radius ** 2
 
-print(f"Area of circle with radius 5: {calculate_circle_area(5):.2f}")
-"""
+radius = 5
+area = calculate_circle_area(radius)
+print(f"Area of circle with radius {radius} is {area:.2f}")
+''')
+    
+    print("\n4. Executing Python file:")
+    stdout, stderr = execute_file(test_file)
+    print(f"Stdout: {stdout}")
+    print(f"Stderr: {stderr}")
+    
+    # Clean up
+    os.remove(test_file)
 
-stdout, stderr = execute_code(code)
-print("\nOutput:", stdout)
-if stderr:
-    print("Errors:", stderr)
-
-print("\n=== File Execution ===")
-# Create a temporary file
-with open("temp_script.py", "w") as f:
-    f.write("""
-def fibonacci(n):
-    if n <= 1:
-        return n
-    return fibonacci(n-1) + fibonacci(n-2)
-
-print("First 5 Fibonacci numbers:")
-for i in range(5):
-    print(f"fibonacci({i}) = {fibonacci(i)}")
-""")
-
-try:
-    stdout, stderr = execute_file("temp_script.py")
-    print("\nOutput:", stdout)
-    if stderr:
-        print("Errors:", stderr)
-finally:
-    os.remove("temp_script.py") 
+if __name__ == "__main__":
+    run_demos() 
