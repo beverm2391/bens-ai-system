@@ -7,7 +7,6 @@
   - [ ] scoped "accounts" for serviecs
   - [ ] computer container with tool use
 - [ ] AI TOOLS
-  - [ ] add automated browser tool
   - [ ] add computer use tool (docker conatiner)
   - [ ] code execution (codejail)
   - [ ] Terraform infra provisioner
