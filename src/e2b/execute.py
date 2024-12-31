@@ -3,40 +3,29 @@
 import sys
 import argparse
 import os
+import logging
 from e2b_code_interpreter import Sandbox
 
+# Configure logging based on DEBUG_LEVEL
+DEBUG_LEVEL = int(os.getenv("DEBUG_LEVEL", "0"))
+
+# Configure e2b logger
+e2b_logger = logging.getLogger("e2b")
+e2b_logger.setLevel(logging.WARNING if DEBUG_LEVEL == 0 else logging.DEBUG)
+
+# Configure our logger
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO if DEBUG_LEVEL == 0 else logging.DEBUG)
+
 def execute_code(code: str, runtime: str = "python3"):
-    """Execute code in an e2b sandbox environment."""
-    debug = os.getenv("DEBUG_LEVEL", "0")
-    api_key = os.getenv("E2B_API_KEY")
-    
-    if debug != "0":
-        print(f"[DEBUG] Executing code with runtime: {runtime}")
-        print(f"[DEBUG] Code:\n{code}")
-    
-    with Sandbox(api_key=api_key) as sandbox:
-        try:
-            result = sandbox.run_code(code)
-            if debug != "0":
-                print(f"[DEBUG] Result type: {type(result)}")
-                print(f"[DEBUG] Result dir: {dir(result)}")
-                print(f"[DEBUG] Result vars: {vars(result)}")
-                if result.error:
-                    print(f"[DEBUG] Error type: {type(result.error)}")
-                    print(f"[DEBUG] Error dir: {dir(result.error)}")
-                    print(f"[DEBUG] Error str: {str(result.error)}")
-            stdout = "\n".join(result.logs.stdout) if result.logs.stdout else ""
-            stderr = "\n".join(result.logs.stderr) if result.logs.stderr else ""
-            if result.error:
-                stderr = str(result.error)
-            if debug != "0":
-                print(f"[DEBUG] Stdout: {stdout}")
-                print(f"[DEBUG] Stderr: {stderr}")
-            return stdout, stderr
-        except Exception as e:
-            if debug != "0":
-                print(f"[DEBUG] Error: {str(e)}")
-            raise
+    """Execute code in E2B sandbox"""
+    with Sandbox() as sandbox:
+        result = sandbox.run_code(code)
+        stdout = "\n".join(result.logs.stdout) if result.logs.stdout else ""
+        stderr = "\n".join(result.logs.stderr) if result.logs.stderr else ""
+        if result.error:
+            stderr = str(result.error)
+        return stdout, stderr
 
 def main():
     parser = argparse.ArgumentParser(description="Execute code in a secure sandbox")

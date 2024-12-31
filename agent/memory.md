@@ -33,3 +33,44 @@
 - IMPLEMENTATION: created demo_serp_claude.py following demo_claude_tools.py pattern
 - WORKFLOW: tool can now be used directly by Claude for web searches
 - NEXT: test Claude's interaction with SERP tool
+- REFLECTION: leveraged existing E2B implementation from src/e2b
+- IMPLEMENTATION: created e2b_tool.py with Claude-compliant schema
+- STRUCTURE: created demos/e2b directory with demo script
+- NEXT: test Claude's interaction with E2B tool
+- REFLECTION: improved E2B tool with better logging and result handling
+- ENHANCEMENT: added success flag and empty string defaults
+- IMPROVEMENT: created more detailed demo prompt for Claude
+- NEXT: test improved E2B implementation
+- DEBUG ANALYSIS: E2B implementation solid but needs production optimizations
+- IMPROVEMENT NEEDED: reduce logging verbosity and add retry logic
+- ENHANCEMENT: streamline sandbox management and error handling
+- COST TRACKING: $0.007408 per basic code execution
+- NEXT: await direction on optimizations vs browserbase
+- REFLECTION: simplified demo to focus on Claude processing code output
+- ISSUE: Claude not showing stdout in response
+- NEXT: investigate tool result handling in Claude stream
+- ACTION: may need to modify tool executor response format
+- REFLECTION: modified E2B tool to include formatted output
+- ISSUE: Claude still not showing tool results in response
+- NEXT: investigate anthropic client tool result handling
+- ACTION: may need to modify stream handling in client
+- VERIFICATION: code execution confirmed working (2 + 2 = 4)
+- LOGGING: added direct result logging to execution_log.txt
+- CONFIRMED: E2B sandbox properly executing Python code
+- NEXT: investigate why Claude isn't showing results in response
+- IMPROVEMENT: reduced E2B logging noise unless DEBUG_LEVEL > 0
+- FIX: corrected E2B sandbox import and result handling
+- CONFIRMED: code execution still working with quieter logging
+- NEXT: investigate Claude result handling in anthropic client
+- INVESTIGATION: streaming chunks not properly capturing tool use
+- NEXT: examine anthropic client stream format
+- ACTION: may need to modify stream handling in client
+- IMPROVEMENT: added better chunk type handling
+- REFLECTION: simplified to basic non-streaming version first
+- SUCCESS: tool use flow working with direct Anthropic client
+- INSIGHT: streaming version needs to match this message format
+- NEXT: update streaming version to match working flow
+- REFLECTION: simplified to stream only final response
+- SUCCESS: hybrid approach working with direct tool use and streamed explanation
+- INSIGHT: keeping synchronous parts direct makes code cleaner
+- NEXT: ready for browserbase implementation
