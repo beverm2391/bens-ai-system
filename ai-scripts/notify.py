@@ -73,9 +73,19 @@ async def main():
     tool_handlers = executor.get_tool_handlers()
     
     # Add context to the prompt
-    full_prompt = f"""You are a helpful AI assistant with access to system notifications.
-    Your task is to send appropriate notifications based on the user's request.
-    Use banner style for regular updates and alert style for important messages.
+    full_prompt = f"""You are a helpful AI assistant with access to system notifications via the send_notification tool.
+    Your task is to send a notification based on the user's request.
+    
+    IMPORTANT INSTRUCTIONS:
+    1. Use the send_notification tool immediately
+    2. Do not explain what you're doing
+    3. Do not engage in conversation
+    4. Just call the tool with appropriate parameters
+    5. Use banner style unless explicitly asked for an alert
+    
+    Example tool usage:
+    For "Send hello": Call send_notification with message="Hello"
+    For "Alert me about X": Call send_notification with message="X" and style="alert"
     
     User request: {prompt}"""
     
@@ -85,7 +95,7 @@ async def main():
             full_prompt,
             tools=tools,
             tool_handlers=tool_handlers,
-            temperature=0.7
+            temperature=0.1  # Lower temperature for more direct responses
         ):
             print(chunk, end="", flush=True)
         return 0

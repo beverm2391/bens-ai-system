@@ -188,6 +188,17 @@ class AnthropicClient:
                         if hasattr(chunk.message, "usage"):
                             prompt_tokens = chunk.message.usage.input_tokens
                             logger.debug(f"Stream started, prompt_tokens={prompt_tokens}")
+                            if DEBUG_LEVEL > 0:
+                                logger.debug(f"Full message: {chunk.message}")
+                    
+                    elif chunk.type == "content_block_start":
+                        if hasattr(chunk, "content_block") and chunk.content_block.type == "tool_use":
+                            logger.debug(f"Starting tool use block: {chunk.content_block}")
+                            current_tool_call = {
+                                "id": chunk.content_block.id,
+                                "name": chunk.content_block.name,
+                                "parameters": {}
+                            }
                     
                     elif chunk.type == "content_block_delta":
                         if hasattr(chunk.delta, "text"):
@@ -197,17 +208,30 @@ class AnthropicClient:
                             if DEBUG_LEVEL > 0:
                                 logger.debug(f"Received text: {len(text)} chars")
                             yield text
-                            
-                    elif chunk.type == "tool_calls":
-                        # Handle tool calls
-                        if tool_handlers and hasattr(chunk, "tool_calls"):
-                            for tool_call in chunk.tool_calls:
-                                tool_name = tool_call.name
-                                tool_params = tool_call.parameters
+                        elif hasattr(chunk.delta, "partial_json"):
+                            if current_tool_call:
+                                # Accumulate JSON for tool parameters
+                                current_tool_call["parameters_json"] = current_tool_call.get("parameters_json", "") + chunk.delta.partial_json
+                                if DEBUG_LEVEL > 0:
+                                    logger.debug(f"Accumulated tool parameters JSON: {current_tool_call['parameters_json']}")
+                    
+                    elif chunk.type == "content_block_stop":
+                        if current_block_text:
+                            logger.debug(f"Content block complete: {len(current_block_text)} chars")
+                            current_block_text = ""
+                        
+                        if current_tool_call and "parameters_json" in current_tool_call:
+                            # Parse and execute the tool call
+                            try:
+                                parameters = json.loads(current_tool_call["parameters_json"])
+                                tool_name = current_tool_call["name"]
                                 
-                                if tool_name in tool_handlers:
+                                if tool_handlers and tool_name in tool_handlers:
+                                    logger.debug(f"Executing tool {tool_name} with parameters: {parameters}")
                                     try:
-                                        result = tool_handlers[tool_name](**tool_params)
+                                        result = tool_handlers[tool_name](**parameters)
+                                        logger.debug(f"Tool {tool_name} execution result: {result}")
+                                        
                                         # Send tool result back to Claude
                                         params["messages"].extend([
                                             {
@@ -215,9 +239,9 @@ class AnthropicClient:
                                                 "content": [{
                                                     "type": "tool_calls",
                                                     "tool_calls": [{
-                                                        "id": tool_call.id,
+                                                        "id": current_tool_call["id"],
                                                         "name": tool_name,
-                                                        "parameters": tool_params
+                                                        "parameters": parameters
                                                     }]
                                                 }]
                                             },
@@ -227,25 +251,23 @@ class AnthropicClient:
                                                     "type": "text",
                                                     "text": json.dumps(result)
                                                 }],
-                                                "tool_call_id": tool_call.id
+                                                "tool_call_id": current_tool_call["id"]
                                             }
                                         ])
-                                        logger.debug(f"Tool call {tool_name} completed with result: {result}")
                                     except Exception as e:
-                                        logger.error(f"Tool call {tool_name} failed: {str(e)}")
+                                        logger.error(f"Tool {tool_name} execution failed: {str(e)}")
                                         params["messages"].append({
                                             "role": "tool",
                                             "content": [{
                                                 "type": "text",
                                                 "text": json.dumps({"error": str(e)})
                                             }],
-                                            "tool_call_id": tool_call.id
+                                            "tool_call_id": current_tool_call["id"]
                                         })
-                    
-                    elif chunk.type == "content_block_stop":
-                        if current_block_text:
-                            logger.debug(f"Content block complete: {len(current_block_text)} chars")
-                            current_block_text = ""
+                            except json.JSONDecodeError as e:
+                                logger.error(f"Failed to parse tool parameters JSON: {str(e)}")
+                            finally:
+                                current_tool_call = None
                     
                     elif chunk.type == "message_delta":
                         if hasattr(chunk, "usage"):
