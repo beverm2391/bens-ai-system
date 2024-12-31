@@ -51,3 +51,48 @@ Direct Tool Log:
 Code: print(2 + 2)
 Result: {'stdout': '4\n', 'stderr': '', 'success': True, 'output': 'Code output:\n4\n'}
 --------------------------------------------------
+
+Direct Tool Log:
+Code: print(2 + 2)
+Result: {'stdout': '4\n', 'stderr': '', 'success': True, 'output': 'Code output:\n4\n'}
+--------------------------------------------------
+
+Direct Tool Log:
+Code: print(2 + 2)
+Result: {'stdout': '4\n', 'stderr': '', 'success': True, 'output': 'Code output:\n4\n'}
+--------------------------------------------------
+
+Direct Tool Log:
+Code: print(2 + 2)
+Result: {'stdout': '4\n', 'stderr': '', 'success': True, 'output': 'Code output:\n4\n'}
+--------------------------------------------------
+
+Direct Tool Log:
+Code: print(2 + 2)
+Result: {'stdout': '4\n', 'stderr': '', 'success': True, 'output': 'Code output:\n4\n'}
+--------------------------------------------------
+
+Direct Tool Log:
+Code: print(2 + 2)
+Result: {'stdout': '4\n', 'stderr': '', 'success': True, 'output': 'Code output:\n4\n'}
+--------------------------------------------------
+
+Direct Tool Log:
+Code: print(2 + 2)
+Result: {'stdout': '4\n', 'stderr': '', 'success': True, 'output': 'Code output:\n4\n'}
+--------------------------------------------------
+
+Direct Tool Log:
+Code: print(2 + 2)
+Result: {'stdout': '4\n', 'stderr': '', 'success': True, 'output': 'Code output:\n4\n'}
+--------------------------------------------------
+
+Direct Tool Log:
+Code: print(2 + 2)
+Result: {'stdout': '4\n', 'stderr': '', 'success': True, 'output': 'Code output:\n4\n'}
+--------------------------------------------------
+
+Direct Tool Log:
+Code: print(2 + 2)
+Result: {'stdout': '4\n', 'stderr': '', 'success': True, 'output': 'Code output:\n4\n'}
+--------------------------------------------------

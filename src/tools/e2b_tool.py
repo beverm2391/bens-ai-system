@@ -1,61 +1,13 @@
 import os
 import logging
-from typing import Dict, Any
-from dotenv import load_dotenv
 from src.e2b.execute import execute_code
 
-# Configure logging based on DEBUG_LEVEL
-DEBUG_LEVEL = int(os.getenv("DEBUG_LEVEL", "0"))
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO if DEBUG_LEVEL == 0 else logging.DEBUG)
 
-# Load environment variables
-load_dotenv()
+# Get debug level
+debug_level = int(os.getenv("DEBUG_LEVEL", "0"))
 
-def run_code(code: str, runtime: str = "python3") -> Dict[str, Any]:
-    """
-    Execute code in E2B sandbox environment
-    
-    Args:
-        code: Code string to execute
-        runtime: Runtime environment (default: python3)
-        
-    Returns:
-        Dict containing stdout and stderr
-    """
-    if DEBUG_LEVEL > 0:
-        logger.debug(f"Code:\n{code}")
-    else:
-        logger.info("Executing code...")
-    
-    stdout, stderr = execute_code(code, runtime)
-    
-    result = {
-        "stdout": stdout if stdout else "",
-        "stderr": stderr if stderr else "",
-        "success": not stderr,
-        "output": f"Code output:\n{stdout}" if stdout else "No output"
-    }
-    
-    # Log result directly
-    with open("demos/e2b/execution_log.txt", "a") as f:
-        f.write(f"\nDirect Tool Log:\n")
-        f.write(f"Code: {code}\n")
-        f.write(f"Result: {result}\n")
-        f.write("-" * 50 + "\n")
-    
-    if DEBUG_LEVEL > 0:
-        logger.debug(f"stdout: {stdout}")
-        if stderr:
-            logger.error(f"stderr: {stderr}")
-    else:
-        logger.info(f"Execution {'successful' if result['success'] else 'failed'}")
-        
-    return result
-
-# Claude tool schema
 E2B_SCHEMA = {
-    "name": "execute_code",
     "description": """
     Executes code in a secure sandbox environment using E2B.
     This tool should be used when you need to run code snippets safely.
@@ -80,4 +32,34 @@ E2B_SCHEMA = {
         },
         "required": ["code"]
     }
-} 
+}
+
+def run_code(code: str, runtime: str = "python3") -> dict:
+    """Execute code in E2B sandbox and return results."""
+    if debug_level > 0:
+        logger.debug(f"Code:\n{code}")
+    
+    try:
+        if debug_level > 0:
+            logger.info("Executing code...")
+        
+        stdout, stderr = execute_code(code, runtime)
+        
+        if debug_level > 0:
+            logger.info("Execution successful")
+        
+        return {
+            "stdout": stdout or "",
+            "stderr": stderr or "",
+            "success": not stderr,
+            "output": f"Code output:\n{stdout}" if stdout else "No output"
+        }
+        
+    except Exception as e:
+        logger.error(f"Code execution failed: {str(e)}")
+        return {
+            "stdout": "",
+            "stderr": str(e),
+            "success": False,
+            "output": f"Error: {str(e)}"
+        } 
