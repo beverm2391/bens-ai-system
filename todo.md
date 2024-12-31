@@ -1,5 +1,10 @@
 # TODO
 
+- [ ] return cost metrics for each tool and track that
+- [ ] add embedded db tool (create, read, update)
+- [ ] add S3 tool (upload, download, delete)
+- [ ] GitHub API agent for repo file access. Some repo to text to embedding for RAG
+
 - [ ] improved memory
   - [ ] a scratch pad for thoughts (working memory)
   - [ ] a persistent disk for long term memory
@@ -7,13 +12,14 @@
   - [ ] scoped "accounts" for serviecs
   - [ ] computer container with tool use
 - [ ] AI TOOLS
+  
   - [ ] add computer use tool (docker conatiner)
   - [ ] code execution (codejail)
   - [ ] Terraform infra provisioner
   - [ ] Vercel deployment access agent
   - [ ] Supabase expert
   - [ ] browserless stealth browser
-  - [ ] GitHub API agent for repo file access. Some repo to text to embedding for RAG
+  
 - [ ] AI AGENTS
   - [ ] web "research" agent (find info to help with task and add to db)
 - [ ] look at advanced anthropic and openai doc examples

@@ -1,21 +1,20 @@
+"""
+Tool for searching the web using SERP API
+"""
 import os
-import json
+import logging
 from typing import Dict, Any
 import requests
-from dotenv import load_dotenv
 
-# Load environment variables
-load_dotenv()
+logger = logging.getLogger(__name__)
 
-def search(query: str, num_results: int = 10, include_domains: str = "", exclude_domains: str = "") -> Dict[str, Any]:
+def search_web(query: str, num_results: int = 5) -> Dict[str, Any]:
     """
-    Perform a web search using SERP API
+    Search the web using SERP API
     
     Args:
         query: Search query string
-        num_results: Number of results to return (default: 10)
-        include_domains: Comma-separated list of domains to include
-        exclude_domains: Comma-separated list of domains to exclude
+        num_results: Number of results to return (default 5)
         
     Returns:
         Dict containing search results
@@ -24,55 +23,38 @@ def search(query: str, num_results: int = 10, include_domains: str = "", exclude
     if not api_key:
         raise ValueError("SERP_API_KEY environment variable not set")
         
+    url = "https://serpapi.com/search"
     params = {
+        "api_key": api_key,
         "q": query,
         "num": num_results,
-        "api_key": api_key
+        "engine": "google"
     }
     
-    if include_domains:
-        params["include_domains"] = include_domains
-    if exclude_domains:
-        params["exclude_domains"] = exclude_domains
+    try:
+        response = requests.get(url, params=params)
+        response.raise_for_status()
+        data = response.json()
         
-    response = requests.get("https://serpapi.com/search", params=params)
-    response.raise_for_status()
-    
-    return response.json()
-
-# Claude tool schema
-SERP_SCHEMA = {
-    "name": "web_search",
-    "description": """
-    Performs a web search using SERP API to find relevant web pages and information.
-    This tool should be used when you need to search the internet for current information.
-    The search can be filtered to specific domains if needed.
-    Results include titles, snippets, and URLs of relevant web pages.
-    Note that this makes a real API call and consumes credits, so use judiciously.
-    """,
-    "input_schema": {
-        "type": "object",
-        "properties": {
-            "query": {
-                "type": "string",
-                "description": "The search query string"
-            },
-            "num_results": {
-                "type": "integer",
-                "description": "Number of results to return",
-                "default": 10
-            },
-            "include_domains": {
-                "type": "string",
-                "description": "Optional comma-separated list of domains to include",
-                "default": ""
-            },
-            "exclude_domains": {
-                "type": "string", 
-                "description": "Optional comma-separated list of domains to exclude",
-                "default": ""
-            }
-        },
-        "required": ["query"]
-    }
-} 
+        # Extract organic results
+        results = []
+        if "organic_results" in data:
+            for result in data["organic_results"][:num_results]:
+                results.append({
+                    "title": result.get("title", ""),
+                    "link": result.get("link", ""),
+                    "snippet": result.get("snippet", "")
+                })
+                
+        return {
+            "status": "success",
+            "results": results
+        }
+        
+    except requests.exceptions.RequestException as e:
+        logger.error(f"SERP API request failed: {e}")
+        return {
+            "status": "error",
+            "message": str(e),
+            "results": []
+        } 
