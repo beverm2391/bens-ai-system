@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 """
-Demo script showing Claude 3.5 Sonnet tool use with notifications.
+AI script for sending notifications using Claude.
 """
 import os
+import sys
 import asyncio
 from src.clients.anthropic_client import AnthropicClient
 from src.clients.notification_client import NotificationClient
-from src.executor.tool_executor import ToolExecutor
+from tools.tool_executor import ToolExecutor
 
 # Tool definition for notifications
 NOTIFICATION_SCHEMA = {
@@ -42,10 +43,13 @@ def handle_notification(**kwargs):
     return {"status": "success"}
 
 async def main():
-    # Initialize the client
-    api_key = os.getenv("ANTHROPIC_API_KEY")
-    if not api_key:
-        raise ValueError("ANTHROPIC_API_KEY environment variable is required")
+    """Run the notification script."""
+    if len(sys.argv) < 2:
+        print("Usage: notify.py <prompt>")
+        return 1
+        
+    # Get prompt from command line
+    prompt = sys.argv[1]
     
     # Initialize tool executor and register tools
     executor = ToolExecutor()
@@ -57,32 +61,47 @@ async def main():
     )
     
     # Initialize Claude client
+    api_key = os.getenv("ANTHROPIC_API_KEY")
+    if not api_key:
+        print("Error: ANTHROPIC_API_KEY environment variable is required", file=sys.stderr)
+        return 1
+        
     client = AnthropicClient(api_key=api_key)
-    
-    # Example prompt that will use notifications
-    prompt = """You are a helpful AI assistant with access to system notifications.
-    Please demonstrate your ability to send notifications by:
-    1. Sending a welcome banner notification
-    2. Sending an important alert notification
-    3. Sending a final banner notification
-    
-    Between each notification, explain what you're doing."""
     
     # Get tool schemas and handlers from executor
     tools = executor.get_all_tool_schemas()
     tool_handlers = executor.get_tool_handlers()
     
+    # Add context to the prompt
+    full_prompt = f"""You are a helpful AI assistant with access to system notifications via the send_notification tool.
+    Your task is to send a notification based on the user's request.
+    
+    IMPORTANT INSTRUCTIONS:
+    1. Use the send_notification tool immediately
+    2. Do not explain what you're doing
+    3. Do not engage in conversation
+    4. Just call the tool with appropriate parameters
+    5. Use banner style unless explicitly asked for an alert
+    
+    Example tool usage:
+    For "Send hello": Call send_notification with message="Hello"
+    For "Alert me about X": Call send_notification with message="X" and style="alert"
+    
+    User request: {prompt}"""
+    
     # Stream the response
     try:
         async for chunk in client.stream(
-            prompt,
+            full_prompt,
             tools=tools,
             tool_handlers=tool_handlers,
-            temperature=0.7
+            temperature=0.1  # Lower temperature for more direct responses
         ):
             print(chunk, end="", flush=True)
+        return 0
     except Exception as e:
-        print(f"\nError: {str(e)}")
+        print(f"\nError: {str(e)}", file=sys.stderr)
+        return 1
 
 if __name__ == "__main__":
-    asyncio.run(main()) 
+    sys.exit(asyncio.run(main())) 
