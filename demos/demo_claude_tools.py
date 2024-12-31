@@ -1,45 +1,35 @@
 #!/usr/bin/env python3
 """
-Demo script showing Claude 3.5 Sonnet tool use with notifications.
+Demo script showing Claude using multiple tools with usage tracking.
 """
 import os
+import json
 import asyncio
+import logging
 from src.clients.anthropic_client import AnthropicClient
-from src.clients.notification_client import NotificationClient
 from src.tools.tool_executor import ToolExecutor
+from src.tools.notify import send_notification
+from src.tools.serp_tool import search_web
+from src.tools.exa_tool import semantic_search
+from src.tools.e2b_tool import run_code
+from src.tools.config import (
+    NOTIFICATION_SCHEMA,
+    SEARCH_SCHEMA,
+    E2B_SCHEMA
+)
 
-# Tool definition for notifications
-NOTIFICATION_SCHEMA = {
-    "type": "object",
-    "properties": {
-        "message": {
-            "type": "string",
-            "description": "The notification message to display to the user"
-        },
-        "title": {
-            "type": "string",
-            "description": "The notification title",
-            "default": "AI System"
-        },
-        "subtitle": {
-            "type": "string",
-            "description": "Optional subtitle text",
-            "default": ""
-        },
-        "style": {
-            "type": "string",
-            "enum": ["alert", "banner"],
-            "description": "Notification style - alert for modal dialog, banner for notification center",
-            "default": "banner"
-        }
-    },
-    "required": ["message"]
-}
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
-def handle_notification(**kwargs):
-    """Handle notification tool calls from Claude"""
-    NotificationClient.notify(**kwargs)
-    return {"status": "success"}
+def print_usage_metrics(tool_name: str, result: dict):
+    """Print usage metrics for a tool execution"""
+    if "usage" in result:
+        print(f"\n{tool_name} Usage Metrics:")
+        print(json.dumps(result["usage"], indent=2))
 
 async def main():
     # Initialize the client
@@ -49,24 +39,63 @@ async def main():
     
     # Initialize tool executor and register tools
     executor = ToolExecutor()
+    
+    # Register notification tool
     executor.register_tool(
         name="send_notification",
-        description="Send a notification to the user. Use banner style for regular updates and alert style for important messages that require attention.",
+        description=NOTIFICATION_SCHEMA["description"],
         input_schema=NOTIFICATION_SCHEMA,
-        handler=handle_notification
+        handler=send_notification
+    )
+    
+    # Register search tools
+    executor.register_tool(
+        name="search_web",
+        description=SEARCH_SCHEMA["description"],
+        input_schema=SEARCH_SCHEMA,
+        handler=search_web
+    )
+    
+    executor.register_tool(
+        name="semantic_search",
+        description="Perform semantic search using Exa API",
+        input_schema={
+            "type": "object",
+            "properties": {
+                "query": {"type": "string"},
+                "num_results": {"type": "integer", "default": 10},
+                "search_type": {"type": "string", "enum": ["neural", "keyword"], "default": "neural"},
+                "include_domains": {"type": "string"},
+                "exclude_domains": {"type": "string"}
+            },
+            "required": ["query"]
+        },
+        handler=semantic_search
+    )
+    
+    # Register code execution tool
+    executor.register_tool(
+        name="execute_code",
+        description=E2B_SCHEMA["description"],
+        input_schema=E2B_SCHEMA,
+        handler=run_code
     )
     
     # Initialize Claude client
     client = AnthropicClient(api_key=api_key)
     
-    # Example prompt that will use notifications
-    prompt = """You are a helpful AI assistant with access to system notifications.
-    Please demonstrate your ability to send notifications by:
-    1. Sending a welcome banner notification
-    2. Sending an important alert notification
-    3. Sending a final banner notification
+    # Example prompt that will use multiple tools
+    prompt = """You are a helpful AI assistant with access to multiple tools:
+    - System notifications
+    - Web search (both keyword and semantic)
+    - Code execution
     
-    Between each notification, explain what you're doing."""
+    Please demonstrate your capabilities by:
+    1. Searching for information about the Fibonacci sequence
+    2. Writing and executing code to calculate the 10th Fibonacci number
+    3. Sending a notification with the result
+    
+    Between each step, explain what you're doing and show the usage metrics."""
     
     # Get tool schemas and handlers from executor
     tools = executor.get_all_tool_schemas()
@@ -81,8 +110,25 @@ async def main():
             temperature=0.7
         ):
             print(chunk, end="", flush=True)
+            
+            # If chunk contains tool result, print usage metrics
+            if isinstance(chunk, dict) and "tool_calls" in chunk:
+                for call in chunk["tool_calls"]:
+                    if "result" in call:
+                        print_usage_metrics(call["name"], call["result"])
+                    
     except Exception as e:
-        print(f"\nError: {str(e)}")
+        logger.error(f"Error: {str(e)}")
+        # Send error notification
+        try:
+            result = send_notification(
+                message=f"Demo failed: {str(e)}",
+                title="Demo Error",
+                style="alert"
+            )
+            print_usage_metrics("error_notification", result)
+        except Exception as notify_error:
+            logger.error(f"Failed to send error notification: {notify_error}")
 
 if __name__ == "__main__":
     asyncio.run(main()) 

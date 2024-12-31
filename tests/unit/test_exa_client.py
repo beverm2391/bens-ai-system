@@ -27,16 +27,14 @@ def test_init_with_key(mock_exa):
 async def test_search_success(mock_exa):
     """Test successful search."""
     # Mock search results
+    mock_response = Mock()
     mock_result = Mock()
     mock_result.title = "Test Title"
     mock_result.url = "http://test.com"
-    mock_exa.return_value.search.return_value = [mock_result]
-    
-    # Mock content
-    mock_content = Mock()
-    mock_content.text = "test content"
-    mock_content.highlights = ["test highlight"]
-    mock_exa.return_value.get_contents.return_value = mock_content
+    mock_result.text = "test content"
+    mock_result.highlights = ["test highlight"]
+    mock_response.results = [mock_result]
+    mock_exa.return_value.search_and_contents.return_value = mock_response
     
     client = ExaClient("test_key")
     results = await client.search("test query")
@@ -45,13 +43,12 @@ async def test_search_success(mock_exa):
     assert results[0]["title"] == "Test Title"
     assert results[0]["text"] == "test content"
     assert results[0]["highlights"] == ["test highlight"]
-    mock_exa.return_value.search.assert_called_once()
-    mock_exa.return_value.get_contents.assert_called_once_with("http://test.com")
+    mock_exa.return_value.search_and_contents.assert_called_once()
 
 @pytest.mark.asyncio
 async def test_search_error(mock_exa):
     """Test search error handling."""
-    mock_exa.return_value.search.side_effect = Exception("API error")
+    mock_exa.return_value.search_and_contents.side_effect = Exception("API error")
     
     client = ExaClient("test_key")
     with pytest.raises(ExaError):

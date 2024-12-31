@@ -29,7 +29,7 @@ def test_client_init():
     
     # Should initialize with defaults
     client = AnthropicClient("test_key")
-    assert client.model == "claude-2.1"
+    assert client.model == "claude-3-sonnet-20240229"
     assert client.default_max_tokens == 1024
     assert isinstance(client.stats, UsageStats)
 

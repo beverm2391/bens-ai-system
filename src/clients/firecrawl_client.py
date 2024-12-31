@@ -33,7 +33,7 @@ class FirecrawlClient:
                         f"{self.base_url}/{endpoint}",
                         **kwargs
                     ) as response:
-                        response.raise_for_status()
+                        await response.raise_for_status()
                         return await response.json()
             except ClientError as e:
                 if attempt == self.max_retries - 1:
