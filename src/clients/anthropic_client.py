@@ -1,7 +1,7 @@
 """
 Robust Anthropic Claude client with streaming, token tracking, and full parameter support.
 """
-from typing import AsyncIterator, Dict, List, Optional, Any, Union
+from typing import AsyncIterator, Dict, List, Optional, Any, Union, Callable
 import anthropic
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -47,10 +47,12 @@ class AnthropicClient:
     - Usage statistics
     - Error handling
     - Debug output controlled by DEBUG_LEVEL env var
+    - Tool use support for Claude 3.5
     """
     
     # Claude API pricing per 1k tokens (as of Dec 2023)
     PRICING = {
+        "claude-3-sonnet-20240229": {"prompt": 0.008, "completion": 0.024},
         "claude-2.1": {"prompt": 0.008, "completion": 0.024},
         "claude-2.0": {"prompt": 0.008, "completion": 0.024},
         "claude-instant-1.2": {"prompt": 0.0008, "completion": 0.0024}
@@ -59,7 +61,7 @@ class AnthropicClient:
     def __init__(
         self,
         api_key: str,
-        model: str = "claude-2.1",
+        model: str = "claude-3-sonnet-20240229",
         default_max_tokens: int = 1024,
     ):
         """
@@ -67,7 +69,7 @@ class AnthropicClient:
         
         Args:
             api_key: Anthropic API key
-            model: Model to use (default: claude-2.1)
+            model: Model to use (default: claude-3-sonnet-20240229)
             default_max_tokens: Default maximum tokens for completions
         """
         if not api_key:
@@ -92,6 +94,8 @@ class AnthropicClient:
         stop_sequences: Optional[List[str]] = None,
         system: Optional[Union[str, List[str]]] = None,
         metadata: Optional[Dict[str, str]] = None,
+        tools: Optional[List[Dict[str, Any]]] = None,
+        tool_handlers: Optional[Dict[str, Callable]] = None,
     ) -> AsyncIterator[str]:
         """
         Stream a completion from Claude.
@@ -105,6 +109,8 @@ class AnthropicClient:
             stop_sequences: Sequences that will stop generation (default: None)
             system: System prompt(s) (default: None)
             metadata: Request metadata (default: None)
+            tools: List of tool definitions in Claude's tool format (default: None)
+            tool_handlers: Dict mapping tool names to their handler functions (default: None)
             
         Yields:
             Generated text chunks
@@ -120,13 +126,21 @@ class AnthropicClient:
             raise ValueError("Temperature must be between 0 and 2")
         if top_p < 0 or top_p > 1:
             raise ValueError("top_p must be between 0 and 1")
+        if tools and not tool_handlers:
+            raise ValueError("tool_handlers must be provided when tools are specified")
         
         max_tokens = max_tokens or self.default_max_tokens
         
         # Build request parameters
         params = {
             "max_tokens": max_tokens,
-            "messages": [{"role": "user", "content": prompt}],
+            "messages": [{
+                "role": "user",
+                "content": [{
+                    "type": "text",
+                    "text": prompt
+                }]
+            }],
             "model": self.model,
             "temperature": temperature,
             "top_p": top_p,
@@ -134,6 +148,10 @@ class AnthropicClient:
             "metadata": metadata,
             "stream": True
         }
+        
+        # Add tools if specified
+        if tools:
+            params["tools"] = tools
         
         # Only include optional parameters if set
         if top_k is not None:
@@ -148,7 +166,8 @@ class AnthropicClient:
         logger.debug(
             f"Starting stream with: prompt_length={len(prompt)}, "
             f"max_tokens={max_tokens}, temperature={temperature}, "
-            f"top_p={top_p}, top_k={top_k}, system={'set' if system else 'none'}"
+            f"top_p={top_p}, top_k={top_k}, system={'set' if system else 'none'}, "
+            f"tools={'set' if tools else 'none'}"
         )
         
         try:
@@ -158,6 +177,7 @@ class AnthropicClient:
             prompt_tokens = 0
             completion_tokens = 0
             current_block_text = ""
+            current_tool_call = None
             
             for chunk in stream:
                 if DEBUG_LEVEL > 0:
@@ -177,6 +197,50 @@ class AnthropicClient:
                             if DEBUG_LEVEL > 0:
                                 logger.debug(f"Received text: {len(text)} chars")
                             yield text
+                            
+                    elif chunk.type == "tool_calls":
+                        # Handle tool calls
+                        if tool_handlers and hasattr(chunk, "tool_calls"):
+                            for tool_call in chunk.tool_calls:
+                                tool_name = tool_call.name
+                                tool_params = tool_call.parameters
+                                
+                                if tool_name in tool_handlers:
+                                    try:
+                                        result = tool_handlers[tool_name](**tool_params)
+                                        # Send tool result back to Claude
+                                        params["messages"].extend([
+                                            {
+                                                "role": "assistant",
+                                                "content": [{
+                                                    "type": "tool_calls",
+                                                    "tool_calls": [{
+                                                        "id": tool_call.id,
+                                                        "name": tool_name,
+                                                        "parameters": tool_params
+                                                    }]
+                                                }]
+                                            },
+                                            {
+                                                "role": "tool",
+                                                "content": [{
+                                                    "type": "text",
+                                                    "text": json.dumps(result)
+                                                }],
+                                                "tool_call_id": tool_call.id
+                                            }
+                                        ])
+                                        logger.debug(f"Tool call {tool_name} completed with result: {result}")
+                                    except Exception as e:
+                                        logger.error(f"Tool call {tool_name} failed: {str(e)}")
+                                        params["messages"].append({
+                                            "role": "tool",
+                                            "content": [{
+                                                "type": "text",
+                                                "text": json.dumps({"error": str(e)})
+                                            }],
+                                            "tool_call_id": tool_call.id
+                                        })
                     
                     elif chunk.type == "content_block_stop":
                         if current_block_text:
