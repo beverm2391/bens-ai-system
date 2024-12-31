@@ -1,39 +1,64 @@
+"""
+Tool for executing code in E2B sandbox
+"""
 import os
+import time
 import logging
+from typing import Dict, Any
 from src.e2b.execute import execute_code
 
 logger = logging.getLogger(__name__)
 
-# Get debug level
-debug_level = int(os.getenv("DEBUG_LEVEL", "0"))
-
-
-def run_code(code: str, runtime: str = "python3") -> dict:
-    """Execute code in E2B sandbox and return results."""
-    if debug_level > 0:
-        logger.debug(f"Code:\n{code}")
+def run_code(code: str, timeout: int = 30) -> Dict[str, Any]:
+    """
+    Execute code in E2B sandbox and return results with usage metrics
+    
+    Args:
+        code: Python code to execute
+        timeout: Execution timeout in seconds
+        
+    Returns:
+        Dict containing execution results and usage metrics
+    """
+    start_time = time.time()
     
     try:
-        if debug_level > 0:
-            logger.info("Executing code...")
+        stdout, stderr = execute_code(code)
+        execution_time = time.time() - start_time
         
-        stdout, stderr = execute_code(code, runtime)
-        
-        if debug_level > 0:
-            logger.info("Execution successful")
+        # Track usage metrics
+        usage = {
+            "execution_seconds": execution_time,
+            "code_length": len(code),
+            "stdout_length": len(stdout),
+            "stderr_length": len(stderr),
+            # TODO: Implement memory tracking
+            # "memory_mb": get_sandbox_memory_usage(),
+            # TODO: Implement CPU tracking
+            # "cpu_percent": get_sandbox_cpu_usage(),
+            # TODO: Track imports used
+            # "imports": extract_imports(code)
+        }
         
         return {
-            "stdout": stdout or "",
-            "stderr": stderr or "",
+            "stdout": stdout,
+            "stderr": stderr,
             "success": not stderr,
-            "output": f"Code output:\n{stdout}" if stdout else "No output"
+            "usage": usage
         }
         
     except Exception as e:
+        execution_time = time.time() - start_time
         logger.error(f"Code execution failed: {str(e)}")
+        
         return {
             "stdout": "",
             "stderr": str(e),
             "success": False,
-            "output": f"Error: {str(e)}"
+            "usage": {
+                "execution_seconds": execution_time,
+                "code_length": len(code),
+                "stdout_length": 0,
+                "stderr_length": len(str(e))
+            }
         } 

@@ -2,6 +2,7 @@
 Tool for searching the web using SERP API
 """
 import os
+import time
 import logging
 from typing import Dict, Any
 import requests
@@ -17,8 +18,9 @@ def search_web(query: str, num_results: int = 5) -> Dict[str, Any]:
         num_results: Number of results to return (default 5)
         
     Returns:
-        Dict containing search results
+        Dict containing search results and usage metrics
     """
+    start_time = time.time()
     api_key = os.getenv("SERP_API_KEY")
     if not api_key:
         raise ValueError("SERP_API_KEY environment variable not set")
@@ -45,10 +47,23 @@ def search_web(query: str, num_results: int = 5) -> Dict[str, Any]:
                     "link": result.get("link", ""),
                     "snippet": result.get("snippet", "")
                 })
+        
+        # Track usage metrics
+        usage = {
+            "queries": 1,
+            "query_length": len(query),
+            "results_returned": len(results),
+            "latency_seconds": time.time() - start_time,
+            # TODO: Implement result content tracking
+            # "total_snippet_length": sum(len(r.get("snippet", "")) for r in results),
+            # TODO: Implement token tracking
+            # "query_tokens": count_tokens(query)
+        }
                 
         return {
             "status": "success",
-            "results": results
+            "results": results,
+            "usage": usage
         }
         
     except requests.exceptions.RequestException as e:
@@ -56,5 +71,11 @@ def search_web(query: str, num_results: int = 5) -> Dict[str, Any]:
         return {
             "status": "error",
             "message": str(e),
-            "results": []
+            "results": [],
+            "usage": {
+                "queries": 1,
+                "query_length": len(query),
+                "results_returned": 0,
+                "latency_seconds": time.time() - start_time
+            }
         } 
