@@ -43,10 +43,4 @@ data
 *.swp
 *.swo
 
-# Portal specific
-portal/.env
-portal/build/
-portal/dist/
-portal/node_modules/
-portal/.next/
-portal/.cache/
+.DS_Store
