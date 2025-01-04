@@ -1,3 +1,6 @@
+"""
+Code generation agent that uses Together's Qwen model for code and OpenAI for responses.
+"""
 from openai import AsyncOpenAI
 import asyncio
 from time import perf_counter
@@ -5,6 +8,7 @@ from dotenv import load_dotenv
 import os
 import ast
 from src.e2b.execute import execute_code
+from src.clients.together_client import TogetherClient
 from typing import Union
 
 load_dotenv()
@@ -13,10 +17,10 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 if not OPENAI_API_KEY:
     raise ValueError("OPENAI_API_KEY is not set")
 
-
 class CodeAgent:
     def __init__(self):
-        self.client = AsyncOpenAI(api_key=OPENAI_API_KEY)
+        self.openai_client = AsyncOpenAI(api_key=OPENAI_API_KEY)
+        self.together_client = TogetherClient(model="Qwen/Qwen2.5-Coder-32B-Instruct")
         self.allowed_imports = [
             "requests",
             "os",
@@ -80,16 +84,20 @@ Output only the raw Python code that would be in a .py file."""
         s = perf_counter()
         if self.logging_level > 0:
             print(f"Generating code...")
-        response = await self.client.chat.completions.create(
-            model="gpt-4",
+        
+        # Use Together's Qwen model for code generation
+        code = await self.together_client.chat_completion(
             messages=[
                 {"role": "system", "content": self.system_prompt()},
                 {"role": "user", "content": prompt},
             ],
+            temperature=0.7,
+            max_tokens=1000,
         )
+        
         if self.logging_level > 0:
             print(f"Code generated in {perf_counter() - s:0.2f} seconds.")
-        return response.choices[0].message.content
+        return code
 
     def execute(self, code: str):
         s = perf_counter()
@@ -114,7 +122,8 @@ Output only the raw Python code that would be in a .py file."""
             print(f"Using the output to answer the user's prompt...")
 
         s = perf_counter()
-        final_response = await self.client.chat.completions.create(
+        # Use OpenAI for final response generation
+        final_response = await self.openai_client.chat.completions.create(
             model="gpt-4",
             messages=[
                 {
