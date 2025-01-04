@@ -169,39 +169,20 @@ Output only the raw Python code that would be in a .py file."""
         # Create tool definitions for sandbox
         tool_setup = []
         for name, tool in self.toolbox.tools.items():
-            if asyncio.iscoroutinefunction(tool.func):
-                # Skip async tools for now
-                continue
-                
-            # Get the function's source code if possible
-            if hasattr(tool.func, '__code__'):
-                tool_setup.append(f"""
-def {name}(x, y):
+            # Create a string representation of the function
+            tool_setup.append(f"""
+def {name}(*args, **kwargs):
     # {tool.description}
-    return x {tool.func.__code__.co_code[0]} y
+    return globals()['{name}_impl'](*args, **kwargs)
 """)
-            else:
-                # For lambda functions, infer the operation
-                sample_result = tool.func(1, 2)
-                if sample_result == 3:
-                    op = "+"
-                elif sample_result == 2:
-                    op = "*"
-                elif sample_result == 0.5:
-                    op = "/"
-                else:
-                    op = "-"
-                tool_setup.append(f"""
-def {name}(x, y):
-    # {tool.description}
-    return x {op} y
-""")
-        
+            
         # Prepare state variables for sandbox
         state_setup = "\n".join([
-            f"{k} = {repr(v)}"
-            for k, v in self.state.items()
+            f"{k} = {repr(v)}" for k, v in self.state.items()
             if not callable(v)
+        ] + [
+            f"{name}_impl = {tool.func.__name__}" for name, tool in self.toolbox.tools.items()
+            if callable(tool.func)
         ])
         
         # Combine all code

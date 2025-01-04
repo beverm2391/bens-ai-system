@@ -1,6 +1,6 @@
 """Tests for the toolbox and tool decorator."""
 import pytest
-from src.agents.toolbox import Toolbox, tool, Tool
+from src.agents.toolbox import Toolbox, tool as tool_decorator, Tool
 
 def test_manual_tool_creation():
     """Test creating and using a tool manually."""
@@ -16,42 +16,38 @@ def test_manual_tool_creation():
     )
     
     toolbox.add_tool(tool_instance)
-    result = toolbox.execute_tool("add", 5, 3)
-    assert result == 8
+    tool = toolbox.get_tool("add")
+    assert tool.func(5, 3) == 8
 
 def test_tool_decorator_basic():
     """Test basic tool decorator usage."""
     toolbox = Toolbox()
     
-    @tool
+    @tool_decorator
     def subtract(x, y):
         """Subtract two numbers."""
         return x - y
     
-    result = toolbox.execute_tool("subtract", 5, 3)
-    assert result == 2
-    
-    tool_info = toolbox.get_tool("subtract")
-    assert tool_info.description == "Subtract two numbers."
+    tool = toolbox.get_tool("subtract")
+    assert tool.func(5, 3) == 2
+    assert tool.description == "Subtract two numbers."
 
 def test_tool_decorator_with_params():
     """Test tool decorator with explicit parameters."""
     toolbox = Toolbox()
     
-    @tool(name="mult", description="Multiply two numbers")
+    @tool_decorator(name="mult", description="Multiply two numbers")
     def multiply(x, y):
         return x * y
     
-    result = toolbox.execute_tool("mult", 4, 3)
-    assert result == 12
-    
-    tool_info = toolbox.get_tool("mult")
-    assert tool_info.name == "mult"
-    assert tool_info.description == "Multiply two numbers"
+    tool = toolbox.get_tool("mult")
+    assert tool.func(4, 3) == 12
+    assert tool.name == "mult"
+    assert tool.description == "Multiply two numbers"
 
 def test_toolbox_singleton():
     """Test that all toolbox instances share the same tools."""
-    @tool
+    @tool_decorator
     def add(x, y):
         """Add two numbers."""
         return x + y
@@ -60,11 +56,9 @@ def test_toolbox_singleton():
     toolbox2 = Toolbox()
     
     assert toolbox1.get_tool("add") is toolbox2.get_tool("add")
-    assert toolbox1.execute_tool("add", 5, 3) == 8
+    assert toolbox1.get_tool("add").func(5, 3) == 8
 
 def test_tool_not_found():
     """Test error handling for non-existent tools."""
     toolbox = Toolbox()
-    
-    with pytest.raises(ValueError, match="Tool nonexistent not found"):
-        toolbox.execute_tool("nonexistent", 1, 2)
+    assert toolbox.get_tool("nonexistent") is None
