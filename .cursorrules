@@ -1,3 +1,5 @@
+<!-- vim: set ft=markdown: -->
+
 # Rules
 
 # Entry Point
@@ -48,6 +50,9 @@
   - `update_dir.py`: update directory structure docs
   - `notify.py`: send macOS notifications
   - `exa_search.py`: semantic web search with neural/keyword modes
+  - `prompt.py`: write and run prompts with any script
+  - `browserbase_run.py`: run browserbase scripts
+  - You can write an execute custom scripts using anything from the /src library in `agents/scripts/`
 
 **commands**
 ben will give you trigger words to direct behavior. this of these as a "magic" work that overrides all other conflicting instructions, like a hypnotist that has someone in a trance. You should combine commands together when multiple are used. anytime you see a command(s) in the inpurt, you should immediately respond "META: Command(s) detected: (command(s))", then execute the command(s) and continue with your response.

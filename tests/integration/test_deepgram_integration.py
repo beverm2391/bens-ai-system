@@ -25,7 +25,7 @@ def test_transcribe_url():
 def test_transcribe_local_file():
     """Test transcription of a local audio file."""
     client = DeepgramClient()
-    
+
     # Using local test audio file
     audio_path = FIXTURES_DIR / "short_audio.wav"
     

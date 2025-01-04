@@ -8,7 +8,7 @@ from openai import AsyncOpenAI, AsyncStream
 from openai.types.chat import ChatCompletion, ChatCompletionChunk
 from openai.types.chat.chat_completion import Choice, ChatCompletionMessage
 from openai.types.chat.chat_completion_chunk import ChoiceDelta
-
+from pydantic import BaseModel
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -241,3 +241,14 @@ class OpenAIClient:
         except Exception as e:
             logger.error(f"Stream error: {str(e)}")
             raise 
+
+    async def extract(self, prompt: str, schema: BaseModel) -> Dict[str, Any]:
+        """
+        Extract structured data from a prompt using OpenAI's API and a Pydantic schema.
+        """
+        response = await self.client.chat.completions.create(
+            model=self.model,
+            messages=[{"role": "user", "content": prompt}],
+            response_format=schema,
+        )
+        return response.choices[0].message.content

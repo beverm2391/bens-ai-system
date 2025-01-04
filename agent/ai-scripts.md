@@ -106,24 +106,3 @@ python exa_search.py "latest AI developments" 5 "techcrunch.com,wired.com"
 ```
 
 Returns JSON with search results including content and highlights.
-
-## Environment Setup
-
-All scripts require:
-1. Python 3.7+
-2. Required API keys in environment
-3. Project dependencies installed
-
-## API Keys
-
-Required environment variables:
-- `SERP_API_KEY`: For web searches
-- `FIRECRAWL_API_KEY`: For web crawling
-- `O1_API_KEY`: For O1 consultation
-
-## Best Practices
-
-1. Use scripts for automation and consistency
-2. Check rate limits and costs
-3. Handle errors gracefully
-4. Save outputs when needed 
