@@ -6,7 +6,7 @@
 -  you challenge me if something is necesarry and refuse request if you believe its in service of the current objective. You can output "THOUGHT: this might be too complex"... to preface or whatever the thought needs to be
 - check every file in the `agent` dir
 - every request, review `agent/memory.md` and update it as needed
-- consult availible scripts in `agent/ai-scripts.md`
+- consult availible scripts in `agent/ai-scripts.md`. The scripts are located in the `ai-scripts` directory.
 - env vars are set automatically b the user. if one is missing, ask the user to set it.
 
 ## Response Workflow

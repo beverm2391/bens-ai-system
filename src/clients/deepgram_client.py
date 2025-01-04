@@ -1,112 +1,118 @@
-"""Deepgram API client."""
+"""Deepgram API client facade."""
 
 import os
-from typing import Dict, Any, Union
+import asyncio
+import mimetypes
 from pathlib import Path
-from deepgram import DeepgramClient as DG
-from deepgram import PrerecordedOptions, FileSource
+from typing import Dict, Any, Union, Optional
+from dotenv import load_dotenv
+import aiofiles
+import httpx
+from deepgram.utils import verboselogs
+from deepgram import (
+    DeepgramClient,
+    DeepgramClientOptions,
+    PrerecordedOptions,
+    FileSource,
+)
 
-class DeepgramClient:
-    """Client for Deepgram API interactions.
-    
-    Note on processing times:
-        - Fast models (nova-2, base, enhanced): Max 10 minutes
-        - Whisper model: Max 20 minutes
-        Requests exceeding these limits will return 504 Gateway Timeout
-    """
-    
+load_dotenv()
+
+DEEPGRAM_API_KEY = os.getenv("DEEPGRAM_API_KEY")
+if not DEEPGRAM_API_KEY:
+    raise ValueError("DEEPGRAM_API_KEY not set")
+
+class AsyncDeepgramClient:
+    MAX_FILE_SIZE = 2 * 1024 * 1024 * 1024  # 2GB in bytes
     MODEL_TIMEOUTS = {
         "whisper": 1200,  # 20 minutes
         "nova-2": 600,    # 10 minutes
         "base": 600,
         "enhanced": 600
     }
-    
-    def __init__(self):
-        """Initialize client with API key from environment."""
-        self.client = DG()
-    
-    def _get_timeout(self, model: str) -> int:
-        """Get appropriate timeout for model."""
-        return self.MODEL_TIMEOUTS.get(model, 600)  # Default 10 min
-    
-    def transcribe_url(self, url: str, model: str = "nova-2") -> Dict[str, Any]:
-        """Transcribe audio from a URL.
+
+    def __init__(self, api_key: Optional[str] = None):
+        self.api_key = api_key or os.getenv("DEEPGRAM_API_KEY")
+        if not self.api_key:
+            raise Exception("DEEPGRAM_API_KEY not set")
         
-        Args:
-            url: URL of the audio file
-            model: Model to use for transcription (default: nova-2)
-            
-        Returns:
-            Dict containing transcription response
-            
-        Raises:
-            TimeoutError: If processing exceeds model's time limit
-            Exception: For other transcription failures
-        """
-        try:
-            options = PrerecordedOptions(
-                model=model,
-                smart_format=True,
-            )
-            
-            response = self.client.listen.rest.v("1").transcribe_url(
-                {"url": url}, 
-                options,
-                timeout=self._get_timeout(model)
-            )
-            return response
-            
-        except Exception as e:
-            if "504" in str(e):
-                raise TimeoutError(f"Processing timeout exceeded for model {model}")
-            raise Exception(f"Transcription failed: {str(e)}")
-    
-    def transcribe_file(self, file_path: Union[str, Path], model: str = "nova-2") -> Dict[str, Any]:
-        """Transcribe audio from a local file.
+        config = DeepgramClientOptions(verbose=verboselogs.SPAM)
+        self.client = DeepgramClient(self.api_key, config)
+
+    async def transcribe_file(
+        self,
+        file_path: Union[str, Path],
+        model: str = "nova-2"
+    ) -> Dict[str, Any]:
+        # Validate file size
+        file_size = os.path.getsize(file_path)
+        if file_size > self.MAX_FILE_SIZE:
+            raise Exception(f"File size {file_size} bytes exceeds maximum of {self.MAX_FILE_SIZE} bytes (2GB)")
+
+        # Get appropriate timeout for model
+        timeout = self.MODEL_TIMEOUTS.get(model, 600)
+
+        # Get mime type
+        mime_type, _ = mimetypes.guess_type(file_path)
+        if not mime_type:
+            mime_type = 'audio/mpeg' if str(file_path).endswith('.mp3') else 'audio/wav'
         
-        Args:
-            file_path: Path to local audio file
-            model: Model to use for transcription (default: nova-2)
-            
-        Returns:
-            Dict containing transcription response
-            
-        Raises:
-            FileNotFoundError: If audio file doesn't exist
-            TimeoutError: If processing exceeds model's time limit
-            Exception: For other transcription failures
-        """
+        print(f"DEBUG: Using mime type: {mime_type}")
+
+        async with aiofiles.open(file_path, "rb") as audio_file:
+            data = await audio_file.read()
+
+        payload: FileSource = {
+            "buffer": data,
+            "mimetype": mime_type
+        }
+        
         try:
-            file_path = Path(file_path)
-            if not file_path.exists():
-                raise FileNotFoundError(f"Audio file not found: {file_path}")
-                
-            with open(file_path, "rb") as f:
-                buffer_data = f.read()
-            
-            payload: FileSource = {
-                "buffer": buffer_data,
-            }
-            
-            options = PrerecordedOptions(
-                model=model,
-                smart_format=True,
-            )
-            
-            response = self.client.listen.rest.v("1").transcribe_file(
+            response = await self.client.listen.asyncrest.v("1").transcribe_file(
                 payload,
-                options,
-                timeout=self._get_timeout(model)
+                options=PrerecordedOptions(
+                    model=model,
+                    smart_format=True,
+                    diarize=True,
+                    punctuate=True,
+                    utterances=True
+                ),
+                timeout=httpx.Timeout(timeout, connect=10.0)
             )
-            return response
-            
+            return response.to_dict()
+        except httpx.TimeoutException as e:
+            raise Exception(f"Request timed out after {timeout} seconds. RAW: {str(e)}")
         except Exception as e:
-            if "504" in str(e):
-                raise TimeoutError(f"Processing timeout exceeded for model {model}")
+            if "429" in str(e):
+                raise Exception(f"Rate limit exceeded. Check concurrent request limits for your plan. RAW: {str(e)}")
             raise Exception(f"Transcription failed: {str(e)}")
 
-# Usage example:
-# client = DeepgramClient()
-# result = client.transcribe_url("https://example.com/audio.wav")
-# result = client.transcribe_file("path/to/audio.mp3") 
+    async def transcribe_url(
+        self,
+        url: str,
+        model: str = "nova-2"
+    ) -> Dict[str, Any]:
+        payload = {"url": url}
+        options = PrerecordedOptions(
+            model=model,
+            smart_format=True,
+            diarize=True,
+            punctuate=True,
+            utterances=True
+        )
+
+        timeout = self.MODEL_TIMEOUTS.get(model, 600)
+
+        try:
+            response = await self.client.listen.asyncrest.v("1").transcribe_url(
+                payload,
+                options,
+                timeout=httpx.Timeout(timeout, connect=10.0)
+            )
+            return response.to_dict()
+        except httpx.TimeoutException as e:
+            raise Exception(f"Request timed out after {timeout} seconds. RAW: {str(e)}")
+        except Exception as e:
+            if "429" in str(e):
+                raise Exception(f"Rate limit exceeded. Check concurrent request limits for your plan. RAW: {str(e)}")
+            raise Exception(f"Transcription failed: {str(e)}")

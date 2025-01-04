@@ -2,29 +2,29 @@
 
 import pytest
 from pathlib import Path
-from src.clients.deepgram_client import DeepgramClient
+from src.clients.deepgram_client import AsyncDeepgramClient
 
 # Path to test fixtures
 FIXTURES_DIR = Path(__file__).parent.parent / "fixtures" / "deepgram"
 
-def test_transcribe_url():
+@pytest.mark.asyncio
+async def test_transcribe_url():
     """Test transcription of a sample audio URL."""
-    client = DeepgramClient()
+    client = AsyncDeepgramClient()
     
     # Using Deepgram's sample audio file
     url = "https://dpgr.am/bueller.wav"
     
-    response = client.transcribe_url(url)
+    response = await client.transcribe_url(url)
     
-    # Just verify we got a response
     assert response is not None
-    # Convert to dict to check basic structure
-    response_dict = response.to_dict()
-    assert isinstance(response_dict, dict)
+    assert isinstance(response, dict)
+    assert "results" in response
 
-def test_transcribe_local_file():
+@pytest.mark.asyncio
+async def test_transcribe_local_file():
     """Test transcription of a local audio file."""
-    client = DeepgramClient()
+    client = AsyncDeepgramClient()
 
     # Using local test audio file
     audio_path = FIXTURES_DIR / "short_audio.wav"
@@ -33,10 +33,8 @@ def test_transcribe_local_file():
     if not audio_path.exists():
         pytest.skip("Test audio file not found. Please add short_audio.wav to test fixtures.")
     
-    response = client.transcribe_file(audio_path)
+    response = await client.transcribe_file(audio_path)
     
-    # Just verify we got a response
     assert response is not None
-    # Convert to dict to check basic structure
-    response_dict = response.to_dict()
-    assert isinstance(response_dict, dict) 
+    assert isinstance(response, dict)
+    assert "results" in response 
