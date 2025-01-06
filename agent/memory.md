@@ -1,3 +1,14 @@
+# System Memory
+
+## Recent Changes
+- Added AST-based code validation to Tool class
+  - Checks for dangerous operations (exec, eval)
+  - Validates against system/subprocess calls
+  - Prevents direct file operations
+  - Includes basic syntax validation
+  - All tests passing
+
+## Core Functionality
 - reflection: need stricter adherence to plain text only in memory
 - reflection: must handle command flags immediately as top priority
 - reflection: memory updates should never wait until end of response

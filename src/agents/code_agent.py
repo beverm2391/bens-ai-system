@@ -1,10 +1,5 @@
 """
-A code generation and execution agent that combines:
-- Code generation using Together's Qwen model
-- Secure code execution in a sandbox environment
-- Tool injection for extensibility
-- State management between executions
-- Async support for both sync and async tools
+Code generation agent that uses Together's Qwen model for code and OpenAI for responses.
 """
 from openai import AsyncOpenAI
 import asyncio
@@ -12,81 +7,40 @@ from time import perf_counter
 from dotenv import load_dotenv
 import os
 import ast
-import logging
-from typing import Union, List, Any, Callable
 from src.e2b.execute import execute_code
 from src.clients.together_client import TogetherClient
-from .toolbox import Tool, Toolbox
+from typing import Union, List, Set, Dict, Any
+import logging
 
-# Setup environment and logging
 load_dotenv()
+
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 if not OPENAI_API_KEY:
     raise ValueError("OPENAI_API_KEY is not set")
 
 class CodeAgent:
-    """
-    An agent that generates, validates, and executes Python code in response to natural language prompts.
-    Supports both synchronous and asynchronous tools, maintains state between executions, and runs code
-    in a secure sandbox environment.
-    """
-    def __init__(self, tools: List[Tool] = None, logging_level: int = logging.INFO):
-        """
-        Initialize the agent with optional tools and logging configuration.
-        
-        Args:
-            tools: List of Tool objects that provide additional functionality
-            logging_level: Logging level for debug output
-        """
+    def __init__(self, tools: List = None):
         self.openai_client = AsyncOpenAI(api_key=OPENAI_API_KEY)
         self.together_client = TogetherClient(model="Qwen/Qwen2.5-Coder-32B-Instruct")
-        self.toolbox = Toolbox()  # Use singleton instance
-        if tools:  # Add any additional tools
-            for tool in tools:
-                self.toolbox.add_tool(tool)
-                
-        # Allowed imports for generated code
-        self.allowed_imports = [
-            "requests", "os", "sys", "time", "datetime",
-            "random", "math", "json", "bs4", "asyncio"
-        ]
-        self.logging_level = logging_level
-        logger.setLevel(logging_level)
-        self.state = {}  # Shared state between executions
-
-    async def _wrap_sync_tool(self, func: Callable) -> Callable:
-        """
-        Wrap a tool function to make it async-compatible and update state with its result.
         
-        Args:
-            func: The tool function to wrap
-            
-        Returns:
-            An async wrapper function that handles both sync and async tools
-        """
-        async def wrapper(*args, **kwargs):
-            if asyncio.iscoroutinefunction(func):
-                result = await func(*args, **kwargs)
-            else:
-                result = await asyncio.to_thread(func, *args, **kwargs)
-            self.state['result'] = result
-            return result
-        return wrapper
+        # Base allowed imports that are always available
+        self.base_imports = {
+            "os",
+            "sys",
+            "time",
+            "datetime", 
+            "random",
+            "math",
+            "json",
+        }
+        
+        self.state: Dict[str, Any] = {}  # Shared state between executions
+        self.logging_level = 1
 
     def validate_code(self, code: Union[str, None]) -> tuple[bool, str]:
-        """
-        Validate generated code for security and syntax.
-        
-        Args:
-            code: The code string to validate
-            
-        Returns:
-            Tuple of (is_valid, error_message)
-        """
-        logger.debug(f"Validating code: {code}")
+        """Validates code for syntax and allowed imports."""
         if not isinstance(code, str):
             return False, f"Code must be a string, got {type(code)}"
         if not code.strip():
@@ -100,164 +54,111 @@ class CodeAgent:
                     for alias in node.names:
                         import_name = f"{module}.{alias.name}" if module else alias.name
                         base_module = import_name.split(".")[0]
-                        if base_module not in self.allowed_imports:
-                            logger.warning(f"Import '{import_name}' is not allowed")
+                        if base_module not in self.base_imports:
                             return False, f"Import '{import_name}' is not allowed"
-            logger.debug("Code validation successful")
             return True, ""
         except SyntaxError as e:
-            logger.error(f"Syntax error in code validation: {str(e)}")
             return False, f"Syntax error: {str(e)}"
         except Exception as e:
-            logger.error(f"Unexpected error in code validation: {str(e)}")
             return False, f"Validation error: {str(e)}"
 
-    def system_prompt(self) -> str:
-        """Generate the system prompt for code generation."""
+    def system_prompt(self):
+        """Returns the system prompt for code generation."""
         return f"""You are a Python code generator that outputs ONLY raw Python code.
-IMPORTANT: DO NOT USE ANY MARKDOWN FORMATTING OR TRIPLE BACKTICKS.
+DO NOT USE ANY MARKDOWN FORMATTING OR TRIPLE BACKTICKS.
 DO NOT include the word 'python' or any other language identifier.
 DO NOT add any explanatory text or comments.
 
-Always start your response with the necessary imports from this allowed list: {self.allowed_imports}
-For example, if using BeautifulSoup, start with 'from bs4 import BeautifulSoup'.
+Always start your response with the necessary imports from this allowed list: {self.base_imports}
+For example:
+import math
+result = math.prod([6, 7])
+print(result)
 
 The code must be complete and self-contained in a single Python script.
 Output only the raw Python code that would be in a .py file."""
 
     async def generate(self, prompt: str) -> str:
-        """
-        Generate Python code from a natural language prompt using the Qwen model.
+        """Generates code from a prompt using Together's Qwen model."""
+        if self.logging_level > 0:
+            print(f"Generating code...")
         
-        Args:
-            prompt: Natural language description of the code to generate
-            
-        Returns:
-            Generated Python code as a string
-        """
-        start_time = perf_counter()
-        logger.info("Starting code generation")
+        code = await self.together_client.chat_completion(
+            messages=[
+                {"role": "system", "content": self.system_prompt()},
+                {"role": "user", "content": prompt},
+            ],
+            temperature=0.7,
+            max_tokens=1000,
+        )
         
-        try:
-            code = await self.together_client.chat_completion(
-                messages=[
-                    {"role": "system", "content": self.system_prompt()},
-                    {"role": "user", "content": prompt},
-                ],
-                temperature=0.7,
-                max_tokens=1000,
-            )
-            logger.info(f"Code generated in {perf_counter() - start_time:0.2f} seconds")
-            return code
-        except Exception as e:
-            logger.error(f"Error in code generation: {str(e)}")
-            raise
+        return code
 
     async def execute(self, code: str) -> Any:
-        """
-        Execute code in a secure sandbox with access to tools and state.
+        """Executes code and updates state."""
+        if self.logging_level > 1:
+            print(f"Executing code...")
+
+        # Prepare code with state
+        state_setup = []
+        for k, v in self.state.items():
+            if not callable(v):
+                state_setup.append(f"{k} = {repr(v)}")
         
-        Args:
-            code: Python code to execute
-            
-        Returns:
-            The result of the execution, if any
-        """
-        start_time = perf_counter()
-        logger.debug("Starting code execution")
-        
-        # Create tool definitions for sandbox
-        tool_setup = []
-        for name, tool in self.toolbox.tools.items():
-            # Create a string representation of the function
-            tool_setup.append(f"""
-def {name}(*args, **kwargs):
-    # {tool.description}
-    return globals()['{name}_impl'](*args, **kwargs)
-""")
-            
-        # Prepare state variables for sandbox
-        state_setup = "\n".join([
-            f"{k} = {repr(v)}" for k, v in self.state.items()
-            if not callable(v)
-        ] + [
-            f"{name}_impl = {tool.func.__name__}" for name, tool in self.toolbox.tools.items()
-            if callable(tool.func)
-        ])
-        
-        # Combine all code
-        full_code = f"""
-{state_setup}
-{''.join(tool_setup)}
-{code}
-"""
-        
+        # Combine state setup with user code
+        full_code = "\n".join(filter(None, [
+            "\n".join(state_setup),  # First set up state
+            code.strip()             # Then add user code
+        ]))
+
         try:
-            # Execute in sandbox
             stdout, stderr = execute_code(full_code)
             if stderr:
-                raise ValueError(stderr)
-                
+                raise ValueError(f"Code execution error: {stderr}")
+
             # Parse stdout to update state
+            # This is a simple approach - we look for assignment statements in the output
             if stdout:
-                # Extract variable assignments from stdout
                 for line in stdout.split("\n"):
                     if "=" in line:
                         try:
                             var_name = line.split("=")[0].strip()
-                            var_value = eval(line.split("=")[1].strip())
+                            var_value = eval(line.split("=")[1].strip(), {}, {})
                             self.state[var_name] = var_value
                         except:
                             pass
-                logger.debug(f"Execution output: {stdout}")
-            
-            logger.info(f"Code executed in {perf_counter() - start_time:0.2f} seconds")
+
             return stdout
-            
+
         except Exception as e:
             logger.error(f"Error in code execution: {str(e)}")
             raise ValueError(f"Code execution error: {str(e)}")
 
     async def run(self, prompt: str) -> str:
-        """
-        Main entry point - generate, validate, and execute code from a prompt.
+        """Main entry point - generates, validates and executes code, then returns result."""
+        code = await self.generate(prompt)
+        res, message = self.validate_code(code)
+        if not res:
+            raise ValueError(message)
+            
+        output = await self.execute(code)
         
-        Args:
-            prompt: Natural language description of what to do
-            
-        Returns:
-            A natural language response based on the code execution results
-        """
-        logger.info("Starting agent run")
-        try:
-            code = await self.generate(prompt)
-            res, message = self.validate_code(code)
-            if not res:
-                raise ValueError(message)
-                
-            output = await self.execute(code)
-            logger.debug("Generating final response")
-
-            start_time = perf_counter()
-            final_response = await self.openai_client.chat.completions.create(
-                model="gpt-4",
-                messages=[
-                    {
-                        "role": "system",
-                        "content": "You are a helpful assistant. Provide a clear, concise answer based on the code output.",
-                    },
-                    {
-                        "role": "user",
-                        "content": f"The original prompt was: {prompt}\nThe code output was: {output}\nPlease provide a clear answer based on this output.",
-                    },
-                ],
-            )
-            logger.info(f"Final response generated in {perf_counter() - start_time:0.2f} seconds")
-            return final_response.choices[0].message.content
-            
-        except Exception as e:
-            logger.error(f"Error in agent run: {str(e)}")
-            raise
+        # Use OpenAI to interpret the result
+        final_response = await self.openai_client.chat.completions.create(
+            model="gpt-4",
+            messages=[
+                {
+                    "role": "system", 
+                    "content": "You are a helpful assistant. Provide a clear, concise answer based on the code output.",
+                },
+                {
+                    "role": "user",
+                    "content": f"The original prompt was: {prompt}\nThe code output was: {output}\nPlease provide a clear answer based on this output.",
+                },
+            ],
+        )
+        
+        return final_response.choices[0].message.content
 
 # CLI interface
 async def main(prompt: str):
