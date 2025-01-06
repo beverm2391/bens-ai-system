@@ -40,6 +40,19 @@
 - when you are not sure if i want to know about it
 - anything that is not a major event or task completion
 
+**coding**
+- code must be thoroughly documented with:
+  - block comments explaining complex logic and workflows
+  - inline comments explaining non-obvious code
+- NEVER use bullet points or lists in comments. It is not helpful. Instead use concise, natural language.
+- ALL documentation must be in # style comments
+- comments go ABOVE the code they document
+- every function needs a block comment
+- every class needs a block comment
+- every module needs a block comment
+- i will be reading the code you write, so document it thoroughly so I can understand it
+**end coding**
+
 **ai scripts**
 - you can use the `ai-scripts` directory to store helpful scripts for yourself to run.
 - in the scripts you can use python to make api calls, search the web, and more.

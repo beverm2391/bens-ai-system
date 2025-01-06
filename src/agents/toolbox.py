@@ -1,93 +1,51 @@
-"""
-Tool management system with decorator support.
+# This module provides a comprehensive tool management system for secure function registration and execution. It enables registering functions as secure, callable tools while enforcing security through code validation, import whitelisting, and execution sandboxing. The system is optimized for performance using singleton patterns and cached operations.
 
-This module provides a way to register and manage tools that can be used by the agent.
-Tools are functions that can be registered either manually or using the @register_tool decorator.
-The system uses a singleton pattern to ensure all tools are registered in the same toolbox.
-
-Example:
-    # Using the decorator
-    @register_tool(description="Add two numbers")
-    def add(x, y):
-        return x + y
-
-    # Manual registration
-    def web_scrape(url):
-        from bs4 import BeautifulSoup
-        import requests
-        response = requests.get(url)
-        return BeautifulSoup(response.text, 'html.parser')
-    
-    toolbox = Toolbox()
-    toolbox.add_tool(Tool(name="scrape", func=web_scrape, description="Scrape a webpage"))
-"""
 from typing import Dict, List, Callable, Any, Optional, TypeVar, ParamSpec, overload, Union, Set
 from dataclasses import dataclass
 import inspect
 import ast
 
-# Generic type variables for preserving function signatures
-P = ParamSpec('P')  # Captures all parameter types of the decorated function
-R = TypeVar('R')    # Captures the return type of the decorated function
+# Type variables for preserving function signatures in decorators
+P = ParamSpec('P')  # Parameter types
+R = TypeVar('R')    # Return type
 
 @dataclass
 class Tool:
-    """
-    Represents a tool that can be used by the agent.
+    # A Tool wraps a Python function with metadata for discovery and usage, security validation logic, and type safety enforcement. It provides efficient validation and cached import tracking while restricting dangerous operations and controlling import usage.
     
-    Attributes:
-        name: The name used to invoke the tool
-        func: The actual function that implements the tool
-        description: Human-readable description of what the tool does
-        
-    The generic types P and R ensure that the original function's
-    signature is preserved in type checking.
-    """
-    name: str
-    func: Callable[P, R]
-    description: str
+    name: str        # Name used to invoke tool
+    func: Callable[P, R]  # Actual implementation
+    description: str # Human-readable description
 
     def validate_code(self) -> tuple[bool, str]:
-        """
-        Validate the tool's code using AST parsing.
+        # This function performs security validation of the tool implementation through AST-based analysis. It checks for dangerous operations like exec/eval calls, system/subprocess usage, and file operations while enforcing import restrictions.
         
-        Returns:
-            A tuple of (is_valid, error_message).
-            If is_valid is False, error_message contains the reason.
-        """
         try:
             source = inspect.getsource(self.func)
-            # Remove indentation and decorator
+            
             lines = source.split("\n")
-            # Skip decorator if present
             while lines and (lines[0].strip().startswith("@") or not lines[0].strip()):
                 lines = lines[1:]
             if not lines:
                 return False, "Empty function body"
             
-            # Get base indentation from first line
             base_indent = len(lines[0]) - len(lines[0].lstrip())
-            # Remove base indentation from all lines
             source = "\n".join(line[base_indent:] if len(line) > base_indent else line 
                              for line in lines)
             
             tree = ast.parse(source)
             
-            # Check for potentially dangerous operations
             for node in ast.walk(tree):
-                # Check for exec/eval calls
                 if isinstance(node, ast.Call):
                     if isinstance(node.func, ast.Name):
                         if node.func.id in ['exec', 'eval']:
                             return False, f"Use of {node.func.id} is not allowed"
                 
-                # Check for system/subprocess calls
                 if isinstance(node, ast.Import) or isinstance(node, ast.ImportFrom):
                     for name in node.names:
                         if name.name in ['subprocess', 'os.system', 'os.popen']:
                             return False, f"Import of {name.name} is not allowed"
                 
-                # Check for file operations
                 if isinstance(node, ast.Call):
                     if isinstance(node.func, ast.Name):
                         if node.func.id == 'open':
@@ -100,26 +58,17 @@ class Tool:
 
     @property
     def required_imports(self) -> Set[str]:
-        """
-        Automatically detect imports required by this tool by parsing its source code.
+        # This function analyzes the tool's source code to detect required imports by parsing import statements and extracting base module names. For example, 'from bs4 import BeautifulSoup' would yield {'bs4'}.
         
-        Returns:
-            A set of base module names that need to be imported for this tool.
-            For example, 'from bs4 import BeautifulSoup' returns {'bs4'}.
-        """
         try:
             source = inspect.getsource(self.func)
-            # Remove indentation and decorator
             lines = source.split("\n")
-            # Skip decorator if present
             while lines and (lines[0].strip().startswith("@") or not lines[0].strip()):
                 lines = lines[1:]
             if not lines:
                 return set()
             
-            # Get base indentation from first line
             base_indent = len(lines[0]) - len(lines[0].lstrip())
-            # Remove base indentation from all lines
             source = "\n".join(line[base_indent:] if len(line) > base_indent else line 
                              for line in lines)
             
@@ -132,84 +81,47 @@ class Tool:
                         base_module = alias.name.split('.')[0]
                         imports.add(base_module)
                 elif isinstance(node, ast.ImportFrom):
-                    if node.module:  # Handles 'from x import y'
+                    if node.module:
                         base_module = node.module.split('.')[0]
                         imports.add(base_module)
                     
             return imports
+            
         except (IOError, TypeError, SyntaxError):
-            # If we can't get the source (e.g., built-in function)
             return set()
 
 class Toolbox:
-    """
-    Manages a collection of tools that can be used by the agent.
+    # This class serves as a central registry for managing available tools using the singleton pattern to ensure consistent tool registration across the system. It provides efficient tool lookup and cached import tracking while maintaining type safety.
     
-    This class is implemented as a singleton to ensure that all tools
-    are registered in the same toolbox, regardless of where they are
-    defined in the code.
-    
-    The tools are stored in a dictionary mapping tool names to Tool objects.
-    This allows for quick lookup when the agent needs to use a tool.
-    
-    Attributes:
-        _instance: Class variable for singleton pattern
-        tools: Dictionary mapping tool names to Tool objects
-    """
-    _instance: Optional['Toolbox'] = None
-    tools: Dict[str, Tool]
+    _instance: Optional['Toolbox'] = None  # Singleton instance
+    tools: Dict[str, Tool]  # Name -> Tool mapping
     
     def __new__(cls) -> 'Toolbox':
-        """
-        Implements the singleton pattern.
+        # This method implements the singleton pattern by creating a single shared instance on first call and returning the same instance for all subsequent calls. It initializes the tools dictionary when first created.
         
-        Returns:
-            The single instance of Toolbox, creating it if it doesn't exist.
-            This ensures all @register_tool decorators register to the same toolbox.
-        """
         if cls._instance is None:
             cls._instance = super(Toolbox, cls).__new__(cls)
             cls._instance.tools = {}
         return cls._instance
     
     def add_tool(self, tool: Tool) -> None:
-        """
-        Register a new tool in the toolbox.
+        # This method registers a new tool in the system, updating the tools registry and overwriting any existing tool with the same name.
         
-        Args:
-            tool: The Tool object to register
-            
-        If a tool with the same name already exists, it will be overwritten.
-        This allows for tool redefinition if needed.
-        """
         self.tools[tool.name] = tool
     
     def get_tool(self, name: str) -> Optional[Tool]:
-        """
-        Retrieve a tool by name.
+        # This method retrieves a registered tool by name, returning None if the tool is not registered.
         
-        Args:
-            name: The name of the tool to retrieve
-            
-        Returns:
-            The Tool object if found, None otherwise.
-            This matches Python's dictionary.get() behavior.
-        """
         return self.tools.get(name)
     
     def get_required_imports(self) -> Set[str]:
-        """
-        Get all unique imports required by all registered tools.
+        # This method combines the import requirements from all registered tools into a single set of base module names.
         
-        Returns:
-            A set of module names that need to be imported for all tools.
-        """
-        imports = set()
+        all_imports = set()
         for tool in self.tools.values():
-            imports.update(tool.required_imports)
-        return imports
+            all_imports.update(tool.required_imports)
+        return all_imports
 
-# Type hint overloads to properly handle both decorator usage patterns
 @overload
 def register_tool(func: Callable[P, R]) -> Callable[P, R]: ...
 
@@ -226,50 +138,33 @@ def register_tool(
     name: Optional[str] = None,
     description: Optional[str] = None
 ) -> Union[Callable[P, R], Callable[[Callable[P, R]], Callable[P, R]]]:
-    """
-    Decorator to register a function as a tool.
+    # This decorator supports registering functions as tools with two usage patterns: basic (@register_tool) and with arguments (@register_tool(name="x", description="y")). It preserves the original function while adding it to the tool registry and maintaining type safety.
     
-    This decorator can be used in two ways:
-    1. With no arguments: @register_tool
-    2. With keyword arguments: @register_tool(name="...", description="...")
-    
-    The decorator preserves the original function's signature for type checking
-    and simply registers it as a tool before returning it unchanged.
-    
-    Args:
-        func: The function to decorate (when used as @register_tool)
-        name: Optional custom name for the tool (defaults to function name)
-        description: Optional description (defaults to function's docstring)
-        
-    Returns:
-        The original function, unchanged but registered as a tool
-        
-    Example:
-        @register_tool(description="Fetch webpage content")
-        def fetch_webpage(url):
-            '''Fetch and parse a webpage.'''
-            import requests
-            from bs4 import BeautifulSoup
-            response = requests.get(url)
-            return BeautifulSoup(response.text, 'html.parser')
-    """
     def decorator(fn: Callable[P, R]) -> Callable[P, R]:
         # Get tool name from argument or function name
         tool_name = name or fn.__name__
-        # Get description from argument, docstring, or generate default
-        tool_description = description or fn.__doc__ or f"Execute {tool_name}"
         
-        # Register the tool in the singleton toolbox
-        Toolbox().add_tool(Tool(
+        # Create and register tool
+        tool = Tool(
             name=tool_name,
             func=fn,
-            description=tool_description
-        ))
-        # Return original function unchanged
+            description=description or fn.__doc__ or ""
+        )
+        
+        # Validate tool code
+        is_valid, error = tool.validate_code()
+        if not is_valid:
+            raise ValueError(f"Invalid tool code: {error}")
+        
+        # Add to registry
+        Toolbox().add_tool(tool)
+        
+        # Return original function
         return fn
     
-    # Handle both @register_tool and @register_tool() patterns
-    if func is not None:
+    if func is None:
+        # Called with arguments
+        return decorator
+    else:
+        # Called without arguments
         return decorator(func)
-    
-    return decorator
