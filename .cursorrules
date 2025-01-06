@@ -42,13 +42,10 @@
 
 **coding**
 - code must be thoroughly documented with:
-  - block comments explaining complex logic and workflows
-  - inline comments explaining non-obvious code
+- block comments explaining complex logic and workflows
+- inline comments explaining non-obvious code
 - NEVER use bullet points or lists in comments. It is not helpful. Instead use concise, natural language.
-- ALL documentation must be in # style comments
-- comments go ABOVE the code they document
-- every function needs a block comment
-- every class needs a block comment
+- do not be verbose, be as concise as possible
 - every module needs a block comment
 - i will be reading the code you write, so document it thoroughly so I can understand it
 **end coding**
